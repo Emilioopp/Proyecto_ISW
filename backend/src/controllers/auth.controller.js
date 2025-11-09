@@ -1,13 +1,13 @@
 import { loginUser } from "../services/auth.service.js";
 import { createUser } from "../services/user.service.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../Handlers/responseHandlers.js";
-import { validateUserLogin, validateUserRegistration, buildValidationErrorResponse } from "../validations/usuario.validation.js";
+import { validateUserLogin, validateUserRegistration } from "../validations/usuario.validation.js";
 
 export async function login(req, res) {
   try {
     const { valid, errors, value } = validateUserLogin(req.body);
     if (!valid) {
-      return buildValidationErrorResponse(res, errors, 400);
+      return handleErrorClient(res, 400, "Errores de validación", errors);
     }
     
     const data = await loginUser(value.email, value.password);
@@ -21,7 +21,7 @@ export async function register(req, res) {
   try {
     const { valid, errors, value } = validateUserRegistration(req.body);
     if (!valid) {
-      return buildValidationErrorResponse(res, errors, 400);
+      return handleErrorClient(res, 400, "Errores de validación", errors);
     }
     
     const newUser = await createUser(value);
