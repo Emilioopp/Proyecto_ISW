@@ -9,9 +9,14 @@ export const User = new EntitySchema({
       type: "int",
       generated: "increment",
     },
+    nombre: {
+      type: "varchar",
+      length: 255,
+      nullable: false,
+    },
     rut: {
       type: "varchar",
-      length: 10,
+      length: 12,
       unique: true,
       nullable: false,
     },
@@ -24,6 +29,11 @@ export const User = new EntitySchema({
     password: {
       type: "varchar",
       length: 255,
+      nullable: false,
+    },
+    rol: {
+      type: "enum",
+      enum: ["Admin", "Profesor", "Estudiante"],
       nullable: false,
     },
     created_at: {
