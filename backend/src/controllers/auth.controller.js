@@ -1,6 +1,6 @@
 import { loginUser } from "../services/auth.service.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../Handlers/responseHandlers.js";
-import { validateUserLogin, validateUserRegistration } from "../validations/usuario.validation.js";
+import { validateUserLogin } from "../validations/usuario.validation.js";
 
 export async function login(req, res) {
   try {
