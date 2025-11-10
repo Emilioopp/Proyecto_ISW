@@ -101,7 +101,7 @@ const rol = Joi.string()
         "string.empty": "rol es requerido",
     });
 
-// Esquemas de validación
+// Esquemas
 
 const loginSchema = Joi.object({
     email: emailGenerico.required(),
@@ -127,6 +127,13 @@ const inscribirEstudianteSchema = Joi.object({
     rut: rut.required(),
 }).unknown(false);
 
+const crearProfesorSchema = Joi.object({
+    email: emailGenerico.required(),
+    password: password.required(),
+    nombre: nombre.required(),
+    rut: rut.required(),
+}).unknown(false);
+
 function buildResult(error, value) {
     return {
         valid: !error,
@@ -147,5 +154,10 @@ export function validateUserUpdate(data) {
 
 export function validateInscribirEstudiante(data) {
     const { error, value } = inscribirEstudianteSchema.validate(data, { abortEarly: false });
+    return buildResult(error, value);
+}
+
+export function validateCrearProfesor(data) {
+    const { error, value } = crearProfesorSchema.validate(data, { abortEarly: false });
     return buildResult(error, value);
 }
