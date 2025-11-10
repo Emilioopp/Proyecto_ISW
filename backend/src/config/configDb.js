@@ -1,14 +1,6 @@
 "use strict";
 import { DataSource } from "typeorm";
 import { DATABASE, DB_USERNAME, HOST, PASSWORD, DB_PORT } from "./configEnv.js";
-import { User } from "../entities/user.entity.js";
-import { Asignatura } from "../entities/asignatura.entity.js";
-import { ProfesorAsignatura } from "../entities/ProfesorAsignatura.entity.js";
-import { EstudianteAsignatura } from "../entities/EstudianteAsignatura.entity.js";
-import { EvaluacionPractica } from "../entities/EvaluacionPractica.entity.js";
-import { Pregunta } from "../entities/pregunta.entity.js";
-import { IntentoEvaluacion } from "../entities/IntentoEvaluacion.entity.js";
-import { RespuestaEstudiante } from "../entities/RespuestaEstudiante.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -17,16 +9,7 @@ export const AppDataSource = new DataSource({
   username: DB_USERNAME,
   password: PASSWORD,
   database: DATABASE,
-  entities: [
-    User,
-    Asignatura,
-    ProfesorAsignatura,
-    EstudianteAsignatura,
-    EvaluacionPractica,
-    Pregunta,
-    IntentoEvaluacion,
-    RespuestaEstudiante
-  ],
+  entities: ["src/entities/**/*.js"],
   synchronize: true,
   logging: ["schema", "error"],
 });
@@ -34,13 +17,13 @@ export const AppDataSource = new DataSource({
 export async function connectDB() {
   try {
     await AppDataSource.initialize();
-    console.log("=> Conexión exitosa");
+    console.log("=> Conexión exitosa a la base de datos PostgreSQL!");
     console.log(
-      "Entidades:",
+      "Entidades cargadas:",
       AppDataSource.entityMetadatas.map(e => e.tableName)
     );
-  } catch (e) {
-    console.error("Error DB:", e);
+  } catch (error) {
+    console.error("Error al conectar con la base de datos:", error);
     process.exit(1);
   }
 }

@@ -26,4 +26,21 @@ export const Asignatura = new EntitySchema({
         default: () => "CURRENT_TIMESTAMP",
     },
   },
+  relations: {
+    profesorAsignaturas: {
+      type: "one-to-many",
+      target: "ProfesorAsignatura",
+      inverseSide: "asignatura",
+    },
+    estudianteAsignaturas: {
+      type: "one-to-many",
+      target: "EstudianteAsignatura",
+      inverseSide: "asignatura",
+    },
+    evaluacionesPracticas: {
+      type: "one-to-many",
+      target: "EvaluacionPractica",
+      inverseSide: "asignatura",
+    },
+  },
 });
