@@ -87,17 +87,10 @@ const nombre = Joi.string()
 const rut = Joi.string()
     .trim()
     .pattern(/^[0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}-?[0-9kK]$/)
-    .custom((value, helpers) => {
-        if (!validarRUT(value)) {
-            return helpers.error("rut.invalid");
-        }
-        return value;
-    })
     .required()
     .messages({
         "string.pattern.base": "RUT debe tener formato válido (ej: 12.345.678-9)",
         "string.empty": "RUT es requerido",
-        "rut.invalid": "RUT ingresado no es válido (dígito verificador incorrecto)",
     });
 
 const rol = Joi.string()
@@ -109,22 +102,6 @@ const rol = Joi.string()
     });
 
 // Esquemas de validación
-
-const registerSchema = Joi.object({
-    email: Joi.when('rol', {
-        is: 'Admin',
-        then: emailAdmin.required(),
-        otherwise: Joi.when('rol', {
-            is: 'Estudiante',
-            then: emailEstudiante.required(),
-            otherwise: emailGenerico.required(),
-        })
-    }),
-    password: password.required(),
-    nombre: nombre.required(),
-    rut: rut.required(),
-    rol: rol.required(),
-}).unknown(false);
 
 const loginSchema = Joi.object({
     email: emailGenerico.required(),
@@ -156,11 +133,6 @@ function buildResult(error, value) {
         errors: error ? error.details.map((d) => d.message) : [],
         value,
     };
-}
-
-export function validateUserRegistration(data) {
-    const { error, value } = registerSchema.validate(data, { abortEarly: false });
-    return buildResult(error, value);
 }
 
 export function validateUserLogin(data) {
