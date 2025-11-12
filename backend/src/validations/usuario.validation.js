@@ -67,10 +67,10 @@ const emailAdmin = Joi.string()
 
 const password = Joi.string()
     .trim()
-    .min(8)
+    .min(1)
     .max(60)
     .messages({
-        "string.min": "password debe tener al menos 8 caracteres",
+        "string.min": "password debe tener al menos 1 carácter",
         "string.max": "password no debe superar 60 caracteres",
         "string.empty": "password es requerido",
 });
@@ -86,11 +86,13 @@ const nombre = Joi.string()
 
 const rut = Joi.string()
     .trim()
-    .pattern(/^[0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}-?[0-9kK]$/)
+    .pattern(/^[\d.]+\-[0-9kK]$/)
+    .min(3) // Mínimo: "1-9"
     .required()
     .messages({
-        "string.pattern.base": "RUT debe tener formato válido (ej: 12.345.678-9)",
+        "string.pattern.base": "RUT debe tener formato válido con guión (ej: 12.345.678-9 o 5.123.456-7)",
         "string.empty": "RUT es requerido",
+        "string.min": "RUT es demasiado corto",
     });
 
 const rol = Joi.string()
@@ -118,13 +120,12 @@ const updateSchema = Joi.object({
     .or("email", "password", "nombre", "rut", "rol")
     .messages({
         "object.missing": "Se debe enviar al menos un campo para actualizar",
-    })
-    .unknown(false);
+    }).unknown(false);
 
 const inscribirEstudianteSchema = Joi.object({
     email: emailEstudiante.required(),
-    nombre: nombre.required(),
-    rut: rut.required(),
+    nombre: nombre.optional(),
+    rut: rut.optional(),
 }).unknown(false);
 
 const crearProfesorSchema = Joi.object({
@@ -133,6 +134,22 @@ const crearProfesorSchema = Joi.object({
     nombre: nombre.required(),
     rut: rut.required(),
 }).unknown(false);
+
+const editarEstudianteSchema = Joi.object({
+    nombre: nombre.optional(),
+    rut: rut.optional(),
+    email: emailEstudiante.optional(),
+    password: password.optional(),
+})
+    .or("nombre", "rut", "email", "password")
+    .messages({
+        "object.missing": "Se debe enviar al menos un campo para actualizar",
+    }).unknown(false);
+
+const cambiarPasswordSchema = Joi.object({
+    passwordActual: password.required(),
+    passwordNueva: password.required(),
+}).unknown(false);    
 
 function buildResult(error, value) {
     return {
@@ -159,5 +176,15 @@ export function validateInscribirEstudiante(data) {
 
 export function validateCrearProfesor(data) {
     const { error, value } = crearProfesorSchema.validate(data, { abortEarly: false });
+    return buildResult(error, value);
+}
+
+export function validateEditarEstudiante(data) {
+    const { error, value } = editarEstudianteSchema.validate(data, { abortEarly: false });
+    return buildResult(error, value);
+}
+
+export function validateCambiarPassword(data) {
+    const { error, value } = cambiarPasswordSchema.validate(data, { abortEarly: false });
     return buildResult(error, value);
 }

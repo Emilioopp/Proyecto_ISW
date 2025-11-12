@@ -1,5 +1,34 @@
 import * as evaluacionService from "../services/evaluacionOral.service.js";
 import { handleError, handleSuccess } from "../Handlers/responseHandlers.js";
+
+export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
+  const { id } = req.params; // id de la asignatura
+
+  try {
+    // Buscar todas las evaluaciones de una asignatura en la base de datos
+    const evaluaciones =
+      await evaluacionService.obtenerEvaluacionesPorAsignatura(id);
+
+    if (evaluaciones.length === 0) {
+      return res.status(404).json({
+        status: "Error",
+        message: "No se encontraron evaluaciones para esta asignatura",
+      });
+    }
+
+    // Responder con las evaluaciones encontradas
+    res.json({
+      status: "Success",
+      data: evaluaciones,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: "Error",
+      message: "Error al obtener las evaluaciones",
+    });
+  }
+};
 export const crearEvaluacionOral = async (req, res) => {
   try {
     const profesor_id = req.user.sub;
