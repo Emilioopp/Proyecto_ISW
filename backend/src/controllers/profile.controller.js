@@ -1,51 +1,75 @@
+import bcrypt from "bcrypt";
+import { AppDataSource } from "../config/configDb.js";
+import { User } from "../entities/user.entity.js";
+import { EstudianteAsignatura } from "../entities/EstudianteAsignatura.entity.js";
+import { ProfesorAsignatura } from "../entities/ProfesorAsignatura.entity.js";
+import { validateCambiarPassword } from "../validations/usuario.validation.js";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../Handlers/responseHandlers.js";
-import { updateUserById, deleteUserById } from "../services/user.service.js";
-import { validateUserUpdate } from "../validations/usuario.validation.js";
 
-export function getPublicProfile(req, res) {
-  handleSuccess(res, 200, "Perfil público obtenido exitosamente", {
-    message: "¡Hola! Este es un perfil público. Cualquiera puede verlo.",
-  });
-}
+const userRepo = AppDataSource.getRepository(User.options.name);
+const eaRepo = AppDataSource.getRepository(EstudianteAsignatura.options.name);
+const paRepo = AppDataSource.getRepository(ProfesorAsignatura.options.name);
 
-export function getPrivateProfile(req, res) {
-  const user = req.user;
-
-  handleSuccess(res, 200, "Perfil privado obtenido exitosamente", {
-    message: `¡Hola, ${user.email}! Este es tu perfil privado. Solo tú puedes verlo.`,
-    userData: user,
-  });
-}
-
-export async function updatePrivateProfile(req, res) {
+export async function getMiPerfil(req, res) {
   try {
     const userId = req.user?.sub;
+    const rol = req.user?.rol;
+
     if (!userId) return handleErrorClient(res, 401, "No autenticado");
 
-    // Validar con Joi
-    const { valid, errors, value } = validateUserUpdate(req.body);
-    if (!valid) {
-      return handleErrorClient(res, 400, "Errores de validación", errors);
+    const usuario = await userRepo.findOne({ where: { id: Number(userId) } });
+    if (!usuario) return handleErrorClient(res, 404, "Usuario no encontrado");
+
+    // Base de respuesta (ocultar password)
+    const { password, ...publicUser } = usuario;
+    const perfil = { ...publicUser };
+
+    if (rol === "Estudiante") {
+      const vinculos = await eaRepo.find({
+        where: { estudiante_id: Number(userId) },
+        relations: ["asignatura"],
+        order: { id: "ASC" },
+      });
+      perfil.asignaturas = vinculos.map(v => v.asignatura);
+    } else if (rol === "Profesor") {
+      const vinculos = await paRepo.find({
+        where: { profesor_id: Number(userId) },
+        relations: ["asignatura"],
+        order: { id: "ASC" },
+      });
+      perfil.asignaturas = vinculos.map(v => v.asignatura);
+    } else {
+      perfil.asignaturas = []; // Admin: sin lista por defecto
     }
 
-    const updated = await updateUserById(userId, value);
-    handleSuccess(res, 200, "Perfil actualizado exitosamente", updated);
+    return handleSuccess(res, 200, "Perfil obtenido exitosamente", perfil);
   } catch (error) {
-    if (error.code === '23505') {
-      return handleErrorClient(res, 409, "El email ya está registrado");
-    }
-    handleErrorServer(res, 500, "Error al actualizar el perfil", error.message);
+    return handleErrorServer(res, 500, "Error al obtener perfil", error.message);
   }
 }
 
-export async function deletePrivateProfile(req, res) {
+export async function cambiarMiPassword(req, res) {
   try {
     const userId = req.user?.sub;
     if (!userId) return handleErrorClient(res, 401, "No autenticado");
 
-    const result = await deleteUserById(userId);
-    handleSuccess(res, 200, "Perfil eliminado exitosamente", result);
+    const { valid, errors, value } = validateCambiarPassword(req.body);
+    if (!valid) return handleErrorClient(res, 400, "Errores de validación", errors);
+
+    const usuario = await userRepo.findOne({ where: { id: Number(userId) } });
+    if (!usuario) return handleErrorClient(res, 404, "Usuario no encontrado");
+
+    const coincide = await bcrypt.compare(value.passwordActual, usuario.password);
+    if (!coincide) return handleErrorClient(res, 400, "Contraseña actual incorrecta");
+
+    const mismaPassword = await bcrypt.compare(value.passwordNueva, usuario.password);
+    if (mismaPassword) return handleErrorClient(res, 400, "La nueva contraseña no puede ser igual a la anterior");
+
+    usuario.password = await bcrypt.hash(value.passwordNueva, 10);
+    await userRepo.save(usuario);
+
+    return handleSuccess(res, 200, "Contraseña actualizada exitosamente", { actualizado: true });
   } catch (error) {
-    handleErrorServer(res, 500, "Error al eliminar el perfil", error.message);
+    return handleErrorServer(res, 500, "Error al cambiar contraseña", error.message);
   }
 }
