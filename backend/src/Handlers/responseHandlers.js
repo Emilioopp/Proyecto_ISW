@@ -8,7 +8,19 @@ export const handleSuccess = (res, statusCode, message, data = null) => {
   });
 };
 
-export const handleErrorClient = (res, statusCode, message, errorDetails = null) => {
+export const handleError = (res, error) => {
+  if (error.name === "ValidationError" || error.statusCode === 400) {
+    return handleErrorClient(res, 400, error.message);
+  }
+  return handleErrorServer(res, error);
+};
+
+export const handleErrorClient = (
+  res,
+  statusCode,
+  message,
+  errorDetails = null
+) => {
   res.status(statusCode).json({
     message,
     errorDetails,
@@ -16,11 +28,12 @@ export const handleErrorClient = (res, statusCode, message, errorDetails = null)
   });
 };
 
-export const handleErrorServer = (res, statusCode, message, errorDetails = null) => {
-  console.error("Server Error:", message, errorDetails);
-  res.status(statusCode).json({
-    message,
-    errorDetails,
+export const handleErrorServer = (res, error) => {
+  console.error("Server Error:", error);
+
+  res.status(500).json({
+    message: "Error interno del servidor",
+    errorDetails: error?.message || error,
     status: "Server error",
   });
 };
