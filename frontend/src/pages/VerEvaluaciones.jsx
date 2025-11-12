@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import axios from "../services/root.service";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "../services/root.service"; // Asegúrate de que axios esté correctamente importado
 
 const VerEvaluaciones = () => {
   const { id } = useParams(); // Obtiene el id de la asignatura
+  const navigate = useNavigate();
   const [evaluaciones, setEvaluaciones] = useState([]);
 
   useEffect(() => {
@@ -12,8 +13,12 @@ const VerEvaluaciones = () => {
 
   const cargarEvaluaciones = async () => {
     try {
-      const response = await axios.get(`/asignaturas/${id}/evaluaciones`);
-      setEvaluaciones(response.data.data);
+      // Cambiar la URL para que coincida con el backend
+      const response = await axios.get(
+        `/evaluaciones-orales/${id}/evaluaciones`
+      );
+      console.log(response.data); // Para verificar que las evaluaciones llegan bien
+      setEvaluaciones(response.data.data); // Almacenar las evaluaciones en el estado
     } catch (error) {
       console.error("Error al cargar evaluaciones", error);
     }
@@ -61,7 +66,12 @@ const VerEvaluaciones = () => {
                       <td className="px-4 py-3">{evaluacion.titulo}</td>
                       <td className="px-4 py-3">{evaluacion.fecha}</td>
                       <td className="px-4 py-3">
-                        <button className="text-blue-500 hover:text-blue-700 font-semibold">
+                        <button
+                          className="text-blue-500 hover:text-blue-700 font-semibold"
+                          onClick={() =>
+                            navigate(`/evaluaciones/${evaluacion.id}`)
+                          }
+                        >
                           Ver detalles →
                         </button>
                       </td>
