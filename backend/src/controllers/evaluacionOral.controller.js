@@ -13,10 +13,10 @@ export const crearEvaluacionOral = async (req, res) => {
 export const registrarNota = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
-    const { rut, nota, observacion } = req.body;
+    const { estudiante_id, nota, observacion } = req.body;
     const registro = await evaluacionService.registrarNota({
       evaluacion_oral_id,
-      rut,
+      estudiante_id,
       nota,
       observacion,
     });

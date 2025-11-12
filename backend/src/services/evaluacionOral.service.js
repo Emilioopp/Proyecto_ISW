@@ -13,13 +13,6 @@ const userRepo = AppDataSource.getRepository(User);
 
 const asignaturaRepo = AppDataSource.getRepository(Asignatura);
 
-// Crear una evaluación oral/
-/*
-export const crearEvaluacionOral = async (data) => {
-  const nuevaEvaluacion = evaluacionRepo.create(data);
-  return await evaluacionRepo.save(nuevaEvaluacion);
-};
-*/
 export const crearEvaluacionOral = async (data) => {
   const { codigo_asignatura, profesor_id, titulo, descripcion } = data;
 
@@ -51,6 +44,11 @@ export const registrarNota = async ({
   nota,
   observacion,
 }) => {
+  //Verificar que la nota esté en el rango válido
+  if (typeof nota !== "number" || nota < 1.0 || nota > 7.0) {
+    throw new Error("La nota debe ser un número entre 1.0 y 7.0");
+  }
+
   const evaluacion = await evaluacionRepo.findOne({
     where: { id: evaluacion_oral_id },
   });
