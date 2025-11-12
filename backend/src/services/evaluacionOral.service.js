@@ -3,6 +3,7 @@ import { EvaluacionOral } from "../entities/EvaluacionOral.entity.js";
 import { NotaEvaluacion } from "../entities/NotaEvaluacion.entity.js";
 import { EstudianteAsignatura } from "../entities/EstudianteAsignatura.entity.js";
 import { User } from "../entities/user.entity.js";
+import { Asignatura } from "../entities/asignatura.entity.js";
 
 const evaluacionRepo = AppDataSource.getRepository(EvaluacionOral);
 const notaRepo = AppDataSource.getRepository(NotaEvaluacion);
@@ -10,9 +11,36 @@ const estudianteAsignaturaRepo =
   AppDataSource.getRepository(EstudianteAsignatura);
 const userRepo = AppDataSource.getRepository(User);
 
-// Crear una evaluación oral
+const asignaturaRepo = AppDataSource.getRepository(Asignatura);
+
+// Crear una evaluación oral/
+/*
 export const crearEvaluacionOral = async (data) => {
   const nuevaEvaluacion = evaluacionRepo.create(data);
+  return await evaluacionRepo.save(nuevaEvaluacion);
+};
+*/
+export const crearEvaluacionOral = async (data) => {
+  const { codigo_asignatura, profesor_id, titulo, descripcion } = data;
+
+  // Buscar la asignatura por código
+  const asignatura = await asignaturaRepo.findOne({
+    where: { codigo: codigo_asignatura },
+  });
+
+  if (!asignatura) {
+    throw new Error(
+      `No se encontró una asignatura con código ${codigo_asignatura}`
+    );
+  }
+
+  const nuevaEvaluacion = evaluacionRepo.create({
+    asignatura_id: asignatura.id,
+    profesor_id,
+    titulo,
+    descripcion,
+  });
+
   return await evaluacionRepo.save(nuevaEvaluacion);
 };
 

@@ -3,9 +3,10 @@ import { handleError, handleSuccess } from "../Handlers/responseHandlers.js";
 
 export const crearEvaluacionOral = async (req, res) => {
   try {
-    const data = req.body;
+    const profesor_id = req.user.sub;
+    const data = { ...req.body, profesor_id };
     const evaluacion = await evaluacionService.crearEvaluacionOral(data);
-    handleSuccess(res, 201, evaluacion);
+    handleSuccess(res, 201, "Evaluación oral creada exitosamente", evaluacion);
   } catch (error) {
     handleError(res, error);
   }
