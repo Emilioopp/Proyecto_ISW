@@ -67,10 +67,10 @@ const emailAdmin = Joi.string()
 
 const password = Joi.string()
     .trim()
-    .min(8)
+    .min(1)
     .max(60)
     .messages({
-        "string.min": "password debe tener al menos 8 caracteres",
+        "string.min": "password debe tener al menos 1 carácter",
         "string.max": "password no debe superar 60 caracteres",
         "string.empty": "password es requerido",
 });
@@ -86,11 +86,13 @@ const nombre = Joi.string()
 
 const rut = Joi.string()
     .trim()
-    .pattern(/^[0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}-?[0-9kK]$/)
+    .pattern(/^[\d.]+\-[0-9kK]$/)
+    .min(3) // Mínimo: "1-9"
     .required()
     .messages({
-        "string.pattern.base": "RUT debe tener formato válido (ej: 12.345.678-9)",
+        "string.pattern.base": "RUT debe tener formato válido con guión (ej: 12.345.678-9 o 5.123.456-7)",
         "string.empty": "RUT es requerido",
+        "string.min": "RUT es demasiado corto",
     });
 
 const rol = Joi.string()
