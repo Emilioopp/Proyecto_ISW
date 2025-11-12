@@ -40,6 +40,7 @@ export const NotaEvaluacion = new EntitySchema({
       joinColumn: { name: "evaluacion_oral_id" },
       onDelete: "CASCADE",
     },
+
     estudiante: {
       type: "many-to-one",
       target: "User",
