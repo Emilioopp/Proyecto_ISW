@@ -6,6 +6,7 @@ import Asignaturas from "@pages/Asignaturas";
 import Error404 from "@pages/Error404";
 import Root from "@pages/Root";
 import ProtectedRoute from "@components/ProtectedRoute";
+import DetalleAsignatura from "@pages/DetalleAsignatura.jsx";
 import Placeholder from "@components/Placeholder";
 import "@styles/styles.css";
 
@@ -68,6 +69,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <Placeholder titulo="Mis Estudiantes" icono="👨‍🎓" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/asignaturas/:id",
+        element: (
+          <ProtectedRoute>
+            <DetalleAsignatura />
           </ProtectedRoute>
         ),
       },

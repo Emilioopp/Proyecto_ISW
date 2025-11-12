@@ -157,7 +157,12 @@ const Asignaturas = () => {
                       </td>
                       <td className="px-4 py-3">{asignatura.nombre}</td>
                       <td className="px-4 py-3">
-                        <button className="text-blue-500 hover:text-blue-700 font-semibold">
+                        <button
+                          className="text-blue-500 hover:text-blue-700 font-semibold"
+                          onClick={() =>
+                            navigate(`/asignaturas/${asignatura.id}`)
+                          }
+                        >
                           Ver detalle →
                         </button>
                       </td>
