@@ -3,6 +3,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Login from '@pages/Login';
 import Home from '@pages/Home';
 import Asignaturas from '@pages/Asignaturas';
+import Profesores from '@pages/Profesores';
+import Estudiantes from '@pages/Estudiantes';
 import Error404 from '@pages/Error404';
 import Root from '@pages/Root';
 import ProtectedRoute from '@components/ProtectedRoute';
@@ -43,7 +45,7 @@ const router = createBrowserRouter([
         path: '/profesores',
         element: (
           <ProtectedRoute>
-            <Placeholder titulo="Gestión de Profesores" icono="👨‍🏫" />
+            <Profesores />
           </ProtectedRoute>
         )
       },
@@ -51,7 +53,7 @@ const router = createBrowserRouter([
         path: '/estudiantes',
         element: (
           <ProtectedRoute>
-            <Placeholder titulo="Gestión de Estudiantes" icono="👨‍🎓" />
+            <Estudiantes />
           </ProtectedRoute>
         )
       },

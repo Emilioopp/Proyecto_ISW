@@ -9,24 +9,24 @@ const userRepo = AppDataSource.getRepository(User.options.name);
 const eaRepo = AppDataSource.getRepository(EstudianteAsignatura.options.name);
 const paRepo = AppDataSource.getRepository(ProfesorAsignatura.options.name);
 
-export async function inscribirEstudianteService(profesorId, asignaturaId, data) {
-    // Verifica que el profesor este asignado a la asignatura
-    const asignacionProfesor = await paRepo.findOne({
-        where: { profesor_id: Number(profesorId), asignatura_id: Number(asignaturaId) },
-    });
-    if (!asignacionProfesor) {
-        return [null, "El profesor no esta asignado a esta asignatura"];
+export async function inscribirEstudianteService(userId, asignaturaId, data, rol = "Profesor") {
+    // Admin puede inscribir sin restriccion
+    if (rol !== "Admin") {
+        const asignacionProfesor = await paRepo.findOne({
+            where: { profesor_id: Number(userId), asignatura_id: Number(asignaturaId) },
+        });
+        if (!asignacionProfesor) {
+            return [null, "El profesor no esta asignado a esta asignatura"];
+        }
     }
 
     // Busca usuario por email
     let user = await userRepo.findOne({ where: { email: data.email } });
 
     if (user) {
-        // El estudiante ya existe
         if (user.rol !== "Estudiante") {
             return [null, "El email ya existe y pertenece a un usuario que no es Estudiante"];
         }
-        // Verifica si ya esta inscrito en la asignatura
         const yaInscrito = await eaRepo.findOne({
             where: { estudiante_id: user.id, asignatura_id: Number(asignaturaId) },
         });
@@ -34,7 +34,6 @@ export async function inscribirEstudianteService(profesorId, asignaturaId, data)
             return [null, "El estudiante ya esta inscrito en esta asignatura"];
         }
     } else {
-        // El estudiante NO existe, debe crearse
         if (!data.nombre || !data.rut) {
             return [null, "Para crear un nuevo estudiante se requiere nombre y rut"];
         }
@@ -47,7 +46,6 @@ export async function inscribirEstudianteService(profesorId, asignaturaId, data)
         }
         const passwordHash = await bcrypt.hash(passwordPlano, 10);
 
-        // Crea usuario estudiante
         user = userRepo.create({
             nombre: data.nombre,
             rut: rutFormateado,
@@ -65,7 +63,6 @@ export async function inscribirEstudianteService(profesorId, asignaturaId, data)
         }
     }
 
-    // Vincula estudiante a la asignatura
     const vinculo = eaRepo.create({
         estudiante_id: user.id,
         asignatura_id: Number(asignaturaId),
@@ -84,13 +81,15 @@ export async function inscribirEstudianteService(profesorId, asignaturaId, data)
     return [{ estudiante: publicUser, asignatura_id: Number(asignaturaId) }, null];
 }
 
-export async function getEstudiantesByAsignaturaService(profesorId, asignaturaId) {
-    // Verifica asignacion del profesor
-    const asignacionProfesor = await paRepo.findOne({
-        where: { profesor_id: Number(profesorId), asignatura_id: Number(asignaturaId) },
-    });
-    if (!asignacionProfesor) {
-        return [null, "El profesor no está asignado a esta asignatura"];
+export async function getEstudiantesByAsignaturaService(userId, asignaturaId, rol = "Profesor") {
+    // Si es Profesor, validar asignación; Admin puede ver cualquier asignatura
+    if (rol !== "Admin") {
+        const asignacionProfesor = await paRepo.findOne({
+            where: { profesor_id: Number(userId), asignatura_id: Number(asignaturaId) },
+        });
+        if (!asignacionProfesor) {
+            return [null, "El profesor no está asignado a esta asignatura"];
+        }
     }
 
     // Obtiene estudiantes con sus datos de usuario
@@ -109,7 +108,6 @@ export async function getEstudiantesByAsignaturaService(profesorId, asignaturaId
 }
 
 export async function getEstudiantePerfilService(userId, estudianteId, rol) {
-    // Estudiante ve solo su propio perfil
     if (rol === "Estudiante" && userId !== Number(estudianteId)) {
         return [null, "No tienes permiso para ver este perfil"];
     }
