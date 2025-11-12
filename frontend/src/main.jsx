@@ -7,6 +7,7 @@ import Error404 from "@pages/Error404";
 import Root from "@pages/Root";
 import ProtectedRoute from "@components/ProtectedRoute";
 import DetalleAsignatura from "@pages/DetalleAsignatura.jsx";
+import VerEvaluaciones from "@pages/VerEvaluaciones.jsx";
 import Placeholder from "@components/Placeholder";
 import "@styles/styles.css";
 
@@ -77,6 +78,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <DetalleAsignatura />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/asignaturas/:id/evaluaciones",
+        element: (
+          <ProtectedRoute>
+            <VerEvaluaciones />
           </ProtectedRoute>
         ),
       },

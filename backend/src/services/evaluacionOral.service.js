@@ -37,6 +37,17 @@ export const crearEvaluacionOral = async (data) => {
   return await evaluacionRepo.save(nuevaEvaluacion);
 };
 
+export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
+  try {
+    const evaluaciones = await evaluacionRepo.find({
+      asignatura_id: asignaturaId,
+    });
+    return evaluaciones;
+  } catch (error) {
+    throw new Error("Error al obtener evaluaciones: " + error.message);
+  }
+};
+
 // Registrar nota y observación
 export const registrarNota = async ({
   evaluacion_oral_id,
