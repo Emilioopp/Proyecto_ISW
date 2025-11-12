@@ -118,13 +118,12 @@ const updateSchema = Joi.object({
     .or("email", "password", "nombre", "rut", "rol")
     .messages({
         "object.missing": "Se debe enviar al menos un campo para actualizar",
-    })
-    .unknown(false);
+    }).unknown(false);
 
 const inscribirEstudianteSchema = Joi.object({
     email: emailEstudiante.required(),
-    nombre: nombre.required(),
-    rut: rut.required(),
+    nombre: nombre.optional(),
+    rut: rut.optional(),
 }).unknown(false);
 
 const crearProfesorSchema = Joi.object({
@@ -133,6 +132,22 @@ const crearProfesorSchema = Joi.object({
     nombre: nombre.required(),
     rut: rut.required(),
 }).unknown(false);
+
+const editarEstudianteSchema = Joi.object({
+    nombre: nombre.optional(),
+    rut: rut.optional(),
+    email: emailEstudiante.optional(),
+    password: password.optional(),
+})
+    .or("nombre", "rut", "email", "password")
+    .messages({
+        "object.missing": "Se debe enviar al menos un campo para actualizar",
+    }).unknown(false);
+
+const cambiarPasswordSchema = Joi.object({
+    passwordActual: password.required(),
+    passwordNueva: password.required(),
+}).unknown(false);    
 
 function buildResult(error, value) {
     return {
@@ -159,5 +174,15 @@ export function validateInscribirEstudiante(data) {
 
 export function validateCrearProfesor(data) {
     const { error, value } = crearProfesorSchema.validate(data, { abortEarly: false });
+    return buildResult(error, value);
+}
+
+export function validateEditarEstudiante(data) {
+    const { error, value } = editarEstudianteSchema.validate(data, { abortEarly: false });
+    return buildResult(error, value);
+}
+
+export function validateCambiarPassword(data) {
+    const { error, value } = cambiarPasswordSchema.validate(data, { abortEarly: false });
     return buildResult(error, value);
 }

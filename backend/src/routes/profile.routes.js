@@ -1,19 +1,12 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware.js";
-import {
-  getPublicProfile,
-  getPrivateProfile,
-  updatePrivateProfile,
-  deletePrivateProfile,
-} from "../controllers/profile.controller.js";
+import { getMiPerfil, cambiarMiPassword } from "../controllers/profile.controller.js";
 
 const router = Router();
 
-router.get("/public", getPublicProfile); // http://localhost:3000/api/profile/public
+router.use(authMiddleware);
 
-router.get("/private", authMiddleware, getPrivateProfile); // http://localhost:3000/api/profile/private
+router.get("/me", getMiPerfil);             // http://localhost:3000/api/profile/me  
+router.put("/password", cambiarMiPassword); // http://localhost:3000/api/profile/password
 
-// Endpoints requeridos
-router.patch("/private", authMiddleware, updatePrivateProfile); // http://localhost:3000/api/profile/private
-router.delete("/private", authMiddleware, deletePrivateProfile); // http://localhost:3000/api/profile/private
 export default router;
