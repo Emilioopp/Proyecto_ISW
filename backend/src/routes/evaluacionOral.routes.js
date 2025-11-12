@@ -4,12 +4,12 @@ import {
   registrarNota,
   obtenerNotasPorEvaluacion,
 } from "../controllers/evaluacionOral.controller.js";
-import { authenticate } from "../middleware/auth.middleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/", authenticate, crearEvaluacionOral);
-router.post("/:id/registro", authenticate, registrarNota);
-router.get("/:id/registros", authenticate, obtenerNotasPorEvaluacion);
+router.post("/", authMiddleware, crearEvaluacionOral);
+router.post("/:id/registro", authMiddleware, registrarNota);
+router.get("/:id/registros", authMiddleware, obtenerNotasPorEvaluacion);
 
 export default router;
