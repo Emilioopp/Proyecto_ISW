@@ -113,3 +113,38 @@ export const obtenerNotasPorEvaluacion = async (evaluacion_oral_id) => {
     relations: ["estudiante"],
   });
 };
+
+export const actualizarNota = async (notaId, { nota, observacion }) => {
+  const notaExistente = await notaRepo.findOne({
+    where: { id: notaId },
+  });
+
+  if (!notaExistente) {
+    throw new Error("La nota no existe");
+  }
+
+  if (nota !== undefined) {
+    if (typeof nota !== "number" || nota < 1.0 || nota > 7.0) {
+      throw new Error("La nota debe ser un número entre 1.0 y 7.0");
+    }
+    notaExistente.nota = nota;
+  }
+
+  if (observacion !== undefined) {
+    notaExistente.observacion = observacion;
+  }
+
+  return await notaRepo.save(notaExistente);
+};
+
+export const eliminarNota = async (notaId) => {
+  const notaExistente = await notaRepo.findOne({
+    where: { id: notaId },
+  });
+
+  if (!notaExistente) {
+    throw new Error("La nota no existe");
+  }
+
+  return await notaRepo.remove(notaExistente);
+};

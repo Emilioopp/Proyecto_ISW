@@ -65,3 +65,45 @@ export const obtenerNotasPorEvaluacion = async (req, res) => {
     handleError(res, error);
   }
 };
+
+export const actualizarNota = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nota, observacion } = req.body;
+
+    const idNota = parseInt(id);
+    if (isNaN(idNota)) {
+      return res
+        .status(400)
+        .json({ status: "Error", message: "ID de nota inválido" });
+    }
+
+    const notaActualizada = await evaluacionService.actualizarNota(idNota, {
+      nota,
+      observacion,
+    });
+
+    handleSuccess(res, 200, "Nota actualizada correctamente", notaActualizada);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const eliminarNota = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const idNota = parseInt(id);
+    if (isNaN(idNota)) {
+      return res
+        .status(400)
+        .json({ status: "Error", message: "ID de nota inválido" });
+    }
+
+    await evaluacionService.eliminarNota(idNota);
+
+    handleSuccess(res, 200, "Nota eliminada correctamente");
+  } catch (error) {
+    handleError(res, error);
+  }
+};
