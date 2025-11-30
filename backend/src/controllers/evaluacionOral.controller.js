@@ -9,13 +9,6 @@ export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
     const evaluaciones =
       await evaluacionService.obtenerEvaluacionesPorAsignatura(id);
 
-    if (evaluaciones.length === 0) {
-      return res.status(404).json({
-        status: "Error",
-        message: "No se encontraron evaluaciones para esta asignatura",
-      });
-    }
-
     // Responder con las evaluaciones encontradas
     res.json({
       status: "Success",
@@ -32,7 +25,8 @@ export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
 export const crearEvaluacionOral = async (req, res) => {
   try {
     const profesor_id = req.user.sub;
-    const data = { ...req.body, profesor_id };
+    const { asignaturaId } = req.params;
+    const data = { ...req.body, profesor_id, asignaturaId };
     const evaluacion = await evaluacionService.crearEvaluacionOral(data);
     handleSuccess(res, 201, "Evaluación oral creada exitosamente", evaluacion);
   } catch (error) {
@@ -43,6 +37,12 @@ export const registrarNota = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
     const { estudiante_id, nota, observacion } = req.body;
+    if (!estudiante_id || nota === undefined) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Faltan datos obligatorios: estudiante_id y nota",
+      });
+    }
     const registro = await evaluacionService.registrarNota({
       evaluacion_oral_id,
       estudiante_id,

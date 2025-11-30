@@ -22,8 +22,9 @@ export async function inscribirEstudiante(req, res) {
             return handleErrorClient(res, 400, "Errores de validacion", errors);
         }
 
-        const profesorId = req.user.sub;
-        const [result, error] = await inscribirEstudianteService(profesorId, Number(asignaturaId), value);
+        const userId = req.user.sub;
+        const rol = req.user.rol;
+        const [result, error] = await inscribirEstudianteService(userId, Number(asignaturaId), value, rol);
         if (error) {
             return handleErrorClient(res, 400, error);
         }
@@ -40,8 +41,9 @@ export async function getEstudiantesByAsignatura(req, res) {
         if (!id || isNaN(Number(id))) {
             return handleErrorClient(res, 400, "ID de asignatura inválido");
         }
-        const profesorId = req.user.sub;
-        const [estudiantes, error] = await getEstudiantesByAsignaturaService(profesorId, Number(id));
+        const userId = req.user.sub;
+        const rol = req.user.rol;
+        const [estudiantes, error] = await getEstudiantesByAsignaturaService(userId, Number(id), rol);
         if (error) {
             return handleErrorClient(res, 400, error);
         }
