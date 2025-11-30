@@ -58,16 +58,16 @@ export const registrarNota = async ({
     throw new Error("La nota debe ser un número entre 1.0 y 7.0");
   }
 
-  const evaluacion = await evaluacionRepo.findOne({
+  const evaluacionObj = await evaluacionRepo.findOne({
     where: { id: evaluacion_oral_id },
+    relations: ["asignatura"],
   });
-  if (!evaluacion) throw new Error("La evaluación oral no existe");
-
+  if (!evaluacionObj) throw new Error("La evaluación oral no existe");
   // Verificar que el estudiante esté inscrito en la asignatura
   const inscrito = await estudianteAsignaturaRepo.findOne({
     where: {
       estudiante: { id: estudiante_id },
-      asignatura: { id: evaluacion.asignatura.id },
+      asignatura: { id: evaluacionObj.asignatura.id },
     },
   });
 
@@ -78,7 +78,10 @@ export const registrarNota = async ({
 
   // Verificar si ya existe un registro previo
   const existente = await notaRepo.findOne({
-    where: { evaluacion_oral_id, estudiante_id },
+    where: {
+      evaluacion_oral: { id: evaluacion_oral_id },
+      estudiante: { id: estudiante_id },
+    },
   });
   if (existente)
     throw new Error(
@@ -88,8 +91,8 @@ export const registrarNota = async ({
   const nuevaNota = notaRepo.create({
     nota,
     observacion,
-    evaluacionOral: evaluacion, // Pasamos objeto completo
-    estudiante: estudianteObj,
+    evaluacion_oral: evaluacionObj,
+    estudiante: { id: estudiante_id },
   });
 
   const guardada = await notaRepo.save(nuevaNota);
@@ -106,7 +109,7 @@ export const registrarNota = async ({
 // Obtener notas por evaluación
 export const obtenerNotasPorEvaluacion = async (evaluacion_oral_id) => {
   return await notaRepo.find({
-    where: { evaluacionOral: { id: evaluacion_oral_id } },
+    where: { evaluacion_oral: { id: evaluacion_oral_id } },
     relations: ["estudiante"],
   });
 };

@@ -13,7 +13,7 @@ router.post("/:asignaturaId", authMiddleware, crearEvaluacionOral); // http://lo
 router.post("/:id/registro", authMiddleware, registrarNota);
 router.get("/:id/registros", authMiddleware, obtenerNotasPorEvaluacion);
 router.get(
-  "/:id/evaluaciones",
+  "/:asignaturaId/evaluaciones",
   authMiddleware,
   obtenerEvaluacionesPorAsignatura
 );

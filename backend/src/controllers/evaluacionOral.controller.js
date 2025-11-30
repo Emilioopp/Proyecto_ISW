@@ -37,6 +37,12 @@ export const registrarNota = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
     const { estudiante_id, nota, observacion } = req.body;
+    if (!estudiante_id || nota === undefined) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Faltan datos obligatorios: estudiante_id y nota",
+      });
+    }
     const registro = await evaluacionService.registrarNota({
       evaluacion_oral_id,
       estudiante_id,
