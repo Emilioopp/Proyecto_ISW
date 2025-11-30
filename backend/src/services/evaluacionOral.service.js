@@ -14,24 +14,22 @@ const userRepo = AppDataSource.getRepository(User);
 const asignaturaRepo = AppDataSource.getRepository(Asignatura);
 
 export const crearEvaluacionOral = async (data) => {
-  const { codigo_asignatura, profesor_id, titulo, descripcion } = data;
+  const { asignaturaId, profesor_id, titulo, descripcion } = data;
 
   // Buscar la asignatura por código
   const asignatura = await asignaturaRepo.findOne({
-    where: { codigo: codigo_asignatura },
+    where: { id: asignaturaId },
   });
 
   if (!asignatura) {
-    throw new Error(
-      `No se encontró una asignatura con código ${codigo_asignatura}`
-    );
+    throw new Error(`No se encontró una asignatura con id ${asignaturaId}`);
   }
 
   const nuevaEvaluacion = evaluacionRepo.create({
-    asignatura_id: asignatura.id,
-    profesor_id,
     titulo,
     descripcion,
+    asignatura: asignatura,
+    profesor: { id: profesor_id },
   });
 
   return await evaluacionRepo.save(nuevaEvaluacion);
@@ -40,7 +38,7 @@ export const crearEvaluacionOral = async (data) => {
 export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
   try {
     const evaluaciones = await evaluacionRepo.find({
-      asignatura_id: asignaturaId,
+      where: { asignatura: { id: asignaturaId } },
     });
     return evaluaciones;
   } catch (error) {
@@ -68,8 +66,8 @@ export const registrarNota = async ({
   // Verificar que el estudiante esté inscrito en la asignatura
   const inscrito = await estudianteAsignaturaRepo.findOne({
     where: {
-      estudiante_id,
-      asignatura_id: evaluacion.asignatura_id,
+      estudiante: { id: estudiante_id },
+      asignatura: { id: evaluacion.asignatura.id },
     },
   });
 
@@ -88,10 +86,10 @@ export const registrarNota = async ({
     );
 
   const nuevaNota = notaRepo.create({
-    evaluacion_oral_id,
-    estudiante_id,
     nota,
     observacion,
+    evaluacionOral: evaluacion, // Pasamos objeto completo
+    estudiante: estudianteObj,
   });
 
   const guardada = await notaRepo.save(nuevaNota);
@@ -108,7 +106,7 @@ export const registrarNota = async ({
 // Obtener notas por evaluación
 export const obtenerNotasPorEvaluacion = async (evaluacion_oral_id) => {
   return await notaRepo.find({
-    where: { evaluacion_oral_id },
+    where: { evaluacionOral: { id: evaluacion_oral_id } },
     relations: ["estudiante"],
   });
 };
