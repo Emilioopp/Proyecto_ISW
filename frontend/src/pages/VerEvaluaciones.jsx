@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "../services/root.service"; // Asegúrate de que axios esté correctamente importado
+import axios from "../services/root.service";
 
 const VerEvaluaciones = () => {
-  const { id } = useParams(); // Obtiene el id de la asignatura
+  const { id } = useParams();
   const navigate = useNavigate();
   const [evaluaciones, setEvaluaciones] = useState([]);
 
@@ -13,12 +13,11 @@ const VerEvaluaciones = () => {
 
   const cargarEvaluaciones = async () => {
     try {
-      // Cambiar la URL para que coincida con el backend
       const response = await axios.get(
         `/evaluaciones-orales/${id}/evaluaciones`
       );
-      console.log(response.data); // Para verificar que las evaluaciones llegan bien
-      setEvaluaciones(response.data.data); // Almacenar las evaluaciones en el estado
+      console.log(response.data);
+      setEvaluaciones(response.data.data);
     } catch (error) {
       console.error("Error al cargar evaluaciones", error);
     }
@@ -27,14 +26,21 @@ const VerEvaluaciones = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
+        {/* TARJETA DE TÍTULO + VOLVER */}
+        <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <h1 className="text-3xl font-bold text-gray-800">
             Evaluaciones de Asignatura
           </h1>
+          <button
+            onClick={() => navigate(-1)} // Regresa a Detalle de Asignatura
+            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md"
+          >
+            ← Volver
+          </button>
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
             Listado de Evaluaciones
           </h2>
           {evaluaciones.length === 0 ? (
@@ -46,13 +52,13 @@ const VerEvaluaciones = () => {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700 rounded-tl-lg">
                       Título
                     </th>
                     <th className="px-4 py-3 text-left font-semibold text-gray-700">
                       Fecha
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700 rounded-tr-lg">
                       Acciones
                     </th>
                   </tr>
@@ -61,18 +67,26 @@ const VerEvaluaciones = () => {
                   {evaluaciones.map((evaluacion) => (
                     <tr
                       key={evaluacion.id}
-                      className="border-b hover:bg-gray-50"
+                      className="border-b hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3">{evaluacion.titulo}</td>
-                      <td className="px-4 py-3">{evaluacion.fecha}</td>
+                      <td className="px-4 py-3 font-medium text-gray-800">
+                        {evaluacion.titulo}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {new Date(
+                          evaluacion.created_at || Date.now()
+                        ).toLocaleDateString()}
+                      </td>
                       <td className="px-4 py-3">
                         <button
-                          className="text-blue-500 hover:text-blue-700 font-semibold"
+                          className="bg-blue-100 text-blue-700 hover:bg-blue-200 font-semibold py-1 px-4 rounded-full transition-colors text-sm"
                           onClick={() =>
-                            navigate(`/evaluaciones/${evaluacion.id}`)
+                            navigate(`/evaluacion/detalle/${evaluacion.id}`, {
+                              state: { evaluacion: evaluacion },
+                            })
                           }
                         >
-                          Ver detalles →
+                          Ver detalles / Calificar
                         </button>
                       </td>
                     </tr>
