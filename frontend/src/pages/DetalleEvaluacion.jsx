@@ -19,8 +19,13 @@ const DetalleEvaluacion = () => {
 
   const [estudiantes, setEstudiantes] = useState([]);
   const [notasExistentes, setNotasExistentes] = useState([]);
-  const [inputs, setInputs] = useState({});
-  const [editingId, setEditingId] = useState(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentStudent, setCurrentStudent] = useState(null);
+  const [currentNoteId, setCurrentNoteId] = useState(null);
+
+  const [notaInput, setNotaInput] = useState("");
+  const [obsInput, setObsInput] = useState("");
 
   useEffect(() => {
     if (evaluacionInfo) {
@@ -38,111 +43,92 @@ const DetalleEvaluacion = () => {
         getNotasDeEvaluacion(id),
       ]);
 
-      // --- CORRECCIÓN 1: LEER DESDE 'message' ---
-      // Según tu imagen, los estudiantes vienen en 'data', pero las notas en 'message'
       const listaEstudiantes = respEst.data || [];
-      const listaNotas = respNotas.message || []; // <--- AQUÍ ESTABA EL ERROR PRINCIPAL
+      const listaNotas = respNotas.message || [];
 
       setEstudiantes(listaEstudiantes);
       setNotasExistentes(listaNotas);
-
-      console.log("Datos cargados correctamente:", {
-        listaEstudiantes,
-        listaNotas,
-      });
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "No se pudo cargar la lista", "error");
     }
   };
 
-  const handleInputChange = (studentId, field, value) => {
-    setInputs((prev) => ({
-      ...prev,
-      [studentId]: { ...prev[studentId], [field]: value },
-    }));
+  const abrirModal = (estudiante, notaExistente = null) => {
+    setCurrentStudent(estudiante);
+
+    if (notaExistente) {
+      setCurrentNoteId(notaExistente.id);
+      setNotaInput(notaExistente.nota);
+      setObsInput(notaExistente.observacion || "");
+    } else {
+      setCurrentNoteId(null);
+      setNotaInput("");
+      setObsInput("");
+    }
+
+    setModalOpen(true);
   };
 
-  const handleGuardar = async (estudianteId) => {
-    const dataInput = inputs[estudianteId];
-    if (!dataInput?.nota)
-      return Swal.fire("Falta nota", "Ingresa una nota válida", "warning");
+  const cerrarModal = () => {
+    setModalOpen(false);
+    setCurrentStudent(null);
+    setCurrentNoteId(null);
+  };
+
+  const guardarDesdeModal = async () => {
+    if (
+      !notaInput ||
+      parseFloat(notaInput) < 1.0 ||
+      parseFloat(notaInput) > 7.0
+    ) {
+      return Swal.fire(
+        "Error",
+        "La nota debe estar entre 1.0 y 7.0",
+        "warning"
+      );
+    }
 
     try {
-      await registrarNota(id, {
-        estudiante_id: estudianteId,
-        nota: parseFloat(dataInput.nota),
-        observacion: dataInput.observacion || "",
-      });
-      Swal.fire({
-        title: "Guardado",
-        icon: "success",
-        timer: 1000,
-        showConfirmButton: false,
-      });
+      if (currentNoteId) {
+        await updateNota(currentNoteId, {
+          nota: parseFloat(notaInput),
+          observacion: obsInput,
+        });
+        Swal.fire({
+          title: "Actualizado",
+          icon: "success",
+          timer: 1000,
+          showConfirmButton: false,
+        });
+      } else {
+        await registrarNota(id, {
+          estudiante_id: currentStudent.id,
+          nota: parseFloat(notaInput),
+          observacion: obsInput,
+        });
+        Swal.fire({
+          title: "Guardado",
+          icon: "success",
+          timer: 1000,
+          showConfirmButton: false,
+        });
+      }
+
       cargarDatos();
-      setInputs((prev) => {
-        const copy = { ...prev };
-        delete copy[estudianteId];
-        return copy;
-      });
+      cerrarModal();
     } catch (error) {
       console.error("Error al guardar:", error);
       const mensajeError =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Error al guardar la nota";
+        error.response?.data?.message || "Error al procesar la solicitud";
       Swal.fire("Error", mensajeError, "error");
-    }
-  };
-
-  const handleEditClick = (estudianteId, notaActual) => {
-    setEditingId(estudianteId);
-    setInputs((prev) => ({
-      ...prev,
-      [estudianteId]: {
-        nota: notaActual.nota,
-        observacion: notaActual.observacion,
-      },
-    }));
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setInputs((prev) => {
-      const copy = { ...prev };
-      delete copy[editingId];
-      return copy;
-    });
-  };
-
-  const handleUpdate = async (notaId, estudianteId) => {
-    const dataInput = inputs[estudianteId];
-    try {
-      await updateNota(notaId, {
-        nota: parseFloat(dataInput.nota),
-        observacion: dataInput.observacion,
-      });
-      Swal.fire({
-        title: "Actualizado",
-        icon: "success",
-        timer: 1000,
-        showConfirmButton: false,
-      });
-      setEditingId(null);
-      cargarDatos();
-    } catch (error) {
-      Swal.fire(
-        "Error",
-        error.response?.data?.message || "Error al actualizar",
-        "error"
-      );
     }
   };
 
   const handleDelete = async (notaId) => {
     const result = await Swal.fire({
       title: "¿Eliminar nota?",
+      text: "Se borrará la calificación y la observación.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -188,18 +174,16 @@ const DetalleEvaluacion = () => {
                 <th>Rut</th>
                 <th>Nota</th>
                 <th>Observación</th>
-                <th>Acciones</th>
+                <th style={{ textAlign: "center" }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {estudiantes.map((est) => {
-                // --- CORRECCIÓN 2: USAR 'estudiante_id' ---
-                // Según tu imagen, el ID viene plano como 'estudiante_id'
                 const notaRegistrada = notasExistentes.find(
-                  (n) => Number(n.estudiante_id) === Number(est.id)
+                  (n) =>
+                    Number(n.estudiante_id || n.estudiante?.id) ===
+                    Number(est.id)
                 );
-
-                const isEditing = editingId === est.id;
 
                 return (
                   <tr key={est.id}>
@@ -209,88 +193,47 @@ const DetalleEvaluacion = () => {
                     </td>
                     <td>{est.rut}</td>
 
-                    {/* --- INPUT DE NOTA --- */}
+                    {/* Nota (Solo lectura aquí) */}
                     <td>
-                      {!notaRegistrada || isEditing ? (
-                        <input
-                          type="number"
-                          min="1.0"
-                          max="7.0"
-                          step="0.1"
-                          className="input-nota"
-                          value={inputs[est.id]?.nota || ""}
-                          onChange={(e) =>
-                            handleInputChange(est.id, "nota", e.target.value)
-                          }
-                          placeholder="1.0"
-                        />
-                      ) : (
+                      {notaRegistrada ? (
                         <span className="nota-badge">
                           {notaRegistrada.nota}
                         </span>
-                      )}
-                    </td>
-
-                    {/* --- INPUT DE OBSERVACIÓN --- */}
-                    <td>
-                      {!notaRegistrada || isEditing ? (
-                        <input
-                          type="text"
-                          className="input-obs"
-                          value={inputs[est.id]?.observacion || ""}
-                          onChange={(e) =>
-                            handleInputChange(
-                              est.id,
-                              "observacion",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Observación..."
-                        />
                       ) : (
-                        <span>{notaRegistrada.observacion || "-"}</span>
+                        <span style={{ color: "#aaa" }}>-</span>
                       )}
                     </td>
 
-                    {/* --- BOTONES --- */}
-                    <td>
+                    {/* Observación (Solo lectura, cortada si es larga) */}
+                    <td
+                      className="obs-cell"
+                      title={notaRegistrada?.observacion}
+                    >
+                      {notaRegistrada?.observacion || "-"}
+                    </td>
+
+                    {/* Botones */}
+                    <td style={{ textAlign: "center" }}>
                       {!notaRegistrada ? (
                         <button
                           className="btn-action btn-guardar"
-                          onClick={() => handleGuardar(est.id)}
+                          onClick={() => abrirModal(est)}
                         >
-                          Guardar
+                          Calificar
                         </button>
-                      ) : isEditing ? (
-                        <>
-                          <button
-                            className="btn-action btn-confirmar"
-                            onClick={() =>
-                              handleUpdate(notaRegistrada.id, est.id)
-                            }
-                          >
-                            OK
-                          </button>
-                          <button
-                            className="btn-action btn-cancelar"
-                            onClick={handleCancelEdit}
-                          >
-                            X
-                          </button>
-                        </>
                       ) : (
                         <>
                           <button
                             className="btn-action btn-editar"
-                            onClick={() =>
-                              handleEditClick(est.id, notaRegistrada)
-                            }
+                            onClick={() => abrirModal(est, notaRegistrada)}
+                            title="Editar Nota y Observación"
                           >
                             ✏️
                           </button>
                           <button
                             className="btn-action btn-eliminar"
                             onClick={() => handleDelete(notaRegistrada.id)}
+                            title="Eliminar"
                           >
                             🗑️
                           </button>
@@ -315,6 +258,63 @@ const DetalleEvaluacion = () => {
           </table>
         </div>
       </div>
+
+      {/* --- VENTANA MODAL --- */}
+      {modalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>
+                {currentNoteId ? "Editar Calificación" : "Nueva Calificación"}
+              </h2>
+              <p>
+                Estudiante:{" "}
+                <strong>
+                  {currentStudent?.nombre} {currentStudent?.apellido}
+                </strong>
+              </p>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Nota (1.0 - 7.0):</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="1.0"
+                  max="7.0"
+                  className="input-modal"
+                  value={notaInput}
+                  onChange={(e) => setNotaInput(e.target.value)}
+                  placeholder="Ej: 5.5"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Observación:</label>
+                <textarea
+                  className="textarea-modal"
+                  value={obsInput}
+                  onChange={(e) => setObsInput(e.target.value)}
+                  placeholder="Escriba aquí los detalles de la evaluación, puntos fuertes y débiles..."
+                />
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-action btn-cancelar" onClick={cerrarModal}>
+                Cancelar
+              </button>
+              <button
+                className="btn-action btn-guardar"
+                onClick={guardarDesdeModal}
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

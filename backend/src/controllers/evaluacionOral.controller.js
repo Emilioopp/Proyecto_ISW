@@ -2,14 +2,12 @@ import * as evaluacionService from "../services/evaluacionOral.service.js";
 import { handleError, handleSuccess } from "../Handlers/responseHandlers.js";
 
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
-  const { id } = req.params; // id de la asignatura
+  const { id } = req.params;
 
   try {
-    // Buscar todas las evaluaciones de una asignatura en la base de datos
     const evaluaciones =
       await evaluacionService.obtenerEvaluacionesPorAsignatura(id);
 
-    // Responder con las evaluaciones encontradas
     res.json({
       status: "Success",
       data: evaluaciones,
