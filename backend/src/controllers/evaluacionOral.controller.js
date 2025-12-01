@@ -2,14 +2,12 @@ import * as evaluacionService from "../services/evaluacionOral.service.js";
 import { handleError, handleSuccess } from "../Handlers/responseHandlers.js";
 
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
-  const { id } = req.params; // id de la asignatura
+  const { id } = req.params;
 
   try {
-    // Buscar todas las evaluaciones de una asignatura en la base de datos
     const evaluaciones =
       await evaluacionService.obtenerEvaluacionesPorAsignatura(id);
 
-    // Responder con las evaluaciones encontradas
     res.json({
       status: "Success",
       data: evaluaciones,
@@ -61,6 +59,48 @@ export const obtenerNotasPorEvaluacion = async (req, res) => {
       evaluacion_oral_id
     );
     handleSuccess(res, 200, notas);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const actualizarNota = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nota, observacion } = req.body;
+
+    const idNota = parseInt(id);
+    if (isNaN(idNota)) {
+      return res
+        .status(400)
+        .json({ status: "Error", message: "ID de nota inválido" });
+    }
+
+    const notaActualizada = await evaluacionService.actualizarNota(idNota, {
+      nota,
+      observacion,
+    });
+
+    handleSuccess(res, 200, "Nota actualizada correctamente", notaActualizada);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const eliminarNota = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const idNota = parseInt(id);
+    if (isNaN(idNota)) {
+      return res
+        .status(400)
+        .json({ status: "Error", message: "ID de nota inválido" });
+    }
+
+    await evaluacionService.eliminarNota(idNota);
+
+    handleSuccess(res, 200, "Nota eliminada correctamente");
   } catch (error) {
     handleError(res, error);
   }
