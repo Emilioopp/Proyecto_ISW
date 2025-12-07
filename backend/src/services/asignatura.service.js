@@ -1,4 +1,4 @@
-import { AppDataSource } from "../config/configDb.js";
+﻿import { AppDataSource } from "../config/configDb.js";
 import { Asignatura } from "../entities/asignatura.entity.js";
 
 const asignaturaRepository = AppDataSource.getRepository(Asignatura);

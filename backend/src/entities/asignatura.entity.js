@@ -1,29 +1,29 @@
-import { EntitySchema } from "typeorm";
+﻿import { EntitySchema } from "typeorm";
 
 export const Asignatura = new EntitySchema({
   name: "Asignatura",
   tableName: "asignaturas",
   columns: {
     id: {
-        primary: true,
-        type: "int",
-        generated: "increment",
+      primary: true,
+      type: "int",
+      generated: "increment",
     },
     codigo: {
-        type: "varchar",
-        length: 20,
-        unique: true,
-        nullable: false,
+      type: "varchar",
+      length: 20,
+      unique: true,
+      nullable: false,
     },
     nombre: {
-        type: "varchar",
-        length: 255,
-        nullable: false,
+      type: "varchar",
+      length: 255,
+      nullable: false,
     },
     created_at: {
-        type: "timestamp",
-        createDate: true,
-        default: () => "CURRENT_TIMESTAMP",
+      type: "timestamp",
+      createDate: true,
+      default: () => "CURRENT_TIMESTAMP",
     },
   },
   relations: {
@@ -40,6 +40,11 @@ export const Asignatura = new EntitySchema({
     evaluacionesPracticas: {
       type: "one-to-many",
       target: "EvaluacionPractica",
+      inverseSide: "asignatura",
+    },
+    evaluaciones: {
+      type: "one-to-many",
+      target: "Evaluacion",
       inverseSide: "asignatura",
     },
   },

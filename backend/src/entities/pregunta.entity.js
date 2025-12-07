@@ -1,4 +1,4 @@
-import { EntitySchema } from "typeorm";
+﻿import { EntitySchema } from "typeorm";
 
 export const Pregunta = new EntitySchema({
   name: "Pregunta",

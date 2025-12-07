@@ -5,6 +5,7 @@ import morgan from "morgan";
 import cors from "cors";
 import { AppDataSource, connectDB } from "./config/configDb.js";
 import { routerApi } from "./routes/index.routes.js";
+import { initialSetup } from "./config/initialSetup.js";
 
 const app = express();
 
@@ -22,7 +23,10 @@ app.get("/", (req, res) => {
 
 // Inicializa la conexión a la base de datos
 connectDB()
-  .then(() => {
+  .then(async () => {
+    // Ejecuta la configuración inicial (crear admin si no existe)
+    await initialSetup();
+    
     // Carga todas las rutas de la aplicación
     routerApi(app);
 

@@ -1,16 +1,17 @@
-import ReactDOM from "react-dom/client";
+﻿import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Login from '@pages/Login';
-import Home from '@pages/Home';
-import Asignaturas from '@pages/Asignaturas';
-import Profesores from '@pages/Profesores';
-import Estudiantes from '@pages/Estudiantes';
+import Login from "@pages/Login";
+import Home from "@pages/Home";
+import Asignaturas from "@pages/Asignaturas";
+import Profesores from "@pages/Profesores";
+import Estudiantes from "@pages/Estudiantes";
 import Error404 from "@pages/Error404";
 import Root from "@pages/Root";
 import ProtectedRoute from "@components/ProtectedRoute";
 import DetalleAsignatura from "@pages/DetalleAsignatura.jsx";
 import VerEvaluaciones from "@pages/VerEvaluaciones.jsx";
 import Placeholder from "@components/Placeholder";
+import DetalleEvaluacion from "@pages/DetalleEvaluacion";
 import "@styles/styles.css";
 
 const router = createBrowserRouter([
@@ -48,6 +49,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <Profesores />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/evaluacion/detalle/:id",
+        element: (
+          <ProtectedRoute>
+            <DetalleEvaluacion />
           </ProtectedRoute>
         ),
       },
