@@ -80,10 +80,10 @@ export async function initialSetup() {
         
         await userRepo.save(newUser);
         
-        console.log(`✅ ${userData.rol} creado: ${userData.nombre}`);
-        console.log(`   📧 Email: ${userData.email}`);
-        console.log(`   🔑 Contraseña: ${userData.password}`);
-        console.log(`   👤 RUT: ${userData.rut}\n`);
+        console.log(` ${userData.rol} creado: ${userData.nombre}`);
+        console.log(` Email: ${userData.email}`);
+        console.log(` Contraseña: ${userData.password}`);
+        console.log(` RUT: ${userData.rut}\n`);
         
         createdCount++;
       } else {
@@ -92,14 +92,14 @@ export async function initialSetup() {
     }
 
     if (createdCount > 0) {
-      console.log(`✨ Se crearon ${createdCount} usuario(s) nuevo(s)`);
+      console.log(`Se crearon ${createdCount} usuario(s) nuevo(s)`);
     }
     if (existingCount > 0) {
-      console.log(`ℹ️  ${existingCount} usuario(s) ya existían`);
+      console.log(`${existingCount} usuario(s) ya existían`);
     }
 
     // Crear asignaturas iniciales
-    console.log("\n📚 Creando asignaturas...");
+    console.log("\nCreando asignaturas...");
     
     const asignaturasData = [
       {
@@ -134,7 +134,7 @@ export async function initialSetup() {
         
         await asignaturaRepo.save(newAsignatura);
         
-        console.log(`✅ Asignatura creada: ${asignaturaData.codigo} - ${asignaturaData.nombre}`);
+        console.log(` Asignatura creada: ${asignaturaData.codigo} - ${asignaturaData.nombre}`);
         asignaturasCreated++;
       } else {
         asignaturasExisting++;
@@ -142,16 +142,16 @@ export async function initialSetup() {
     }
 
     if (asignaturasCreated > 0) {
-      console.log(`✨ Se crearon ${asignaturasCreated} asignatura(s) nueva(s)`);
+      console.log(` Se crearon ${asignaturasCreated} asignatura(s) nueva(s)`);
     }
     if (asignaturasExisting > 0) {
-      console.log(`ℹ️  ${asignaturasExisting} asignatura(s) ya existían`);
+      console.log(` ${asignaturasExisting} asignatura(s) ya existían`);
     }
     
-    console.log("✨ Configuración inicial completada\n");
+    console.log(" Configuración inicial completada\n");
     
   } catch (error) {
-    console.error("❌ Error en configuración inicial:", error.message);
+    console.error(" Error en configuración inicial:", error.message);
     throw error;
   }
 }
