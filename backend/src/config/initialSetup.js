@@ -4,7 +4,7 @@ import { User } from "../entities/user.entity.js";
 
 export async function initialSetup() {
   try {
-    console.log("🔧 Ejecutando configuración inicial...");
+    console.log("Ejecutando configuración inicial...");
 
     const userRepo = AppDataSource.getRepository(User.options.name);
     
@@ -78,10 +78,10 @@ export async function initialSetup() {
         
         await userRepo.save(newUser);
         
-        console.log(`✅ ${userData.rol} creado: ${userData.nombre}`);
-        console.log(`   📧 Email: ${userData.email}`);
-        console.log(`   🔑 Contraseña: ${userData.password}`);
-        console.log(`   👤 RUT: ${userData.rut}\n`);
+        console.log(` ${userData.rol} creado: ${userData.nombre}`);
+        console.log(`   Email: ${userData.email}`);
+        console.log(`   Contraseña: ${userData.password}`);
+        console.log(`   RUT: ${userData.rut}\n`);
         
         createdCount++;
       } else {
@@ -90,16 +90,16 @@ export async function initialSetup() {
     }
 
     if (createdCount > 0) {
-      console.log(`✨ Se crearon ${createdCount} usuario(s) nuevo(s)`);
+      console.log(` Se crearon ${createdCount} usuario(s) nuevo(s)`);
     }
     if (existingCount > 0) {
-      console.log(`ℹ️  ${existingCount} usuario(s) ya existían`);
+      console.log(`  ${existingCount} usuario(s) ya existían`);
     }
     
-    console.log("✨ Configuración inicial completada\n");
+    console.log(" Configuración inicial completada\n");
     
   } catch (error) {
-    console.error("❌ Error en configuración inicial:", error.message);
+    console.error(" Error en configuración inicial:", error.message);
     throw error;
   }
 }
