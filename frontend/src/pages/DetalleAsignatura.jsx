@@ -33,7 +33,7 @@ const DetalleAsignatura = () => {
   const handleCrearEvaluacion = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`/evaluaciones/${id}`, {
+      const response = await axios.post(`/evaluaciones-orales/${id}`, {
         titulo,
         descripcion,
         tipo,

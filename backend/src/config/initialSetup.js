@@ -1,14 +1,12 @@
 import bcrypt from "bcrypt";
 import { AppDataSource } from "../config/configDb.js";
 import { User } from "../entities/user.entity.js";
-import { Asignatura } from "../entities/asignatura.entity.js";
 
 export async function initialSetup() {
   try {
-    console.log("🔧 Ejecutando configuración inicial...");
+    console.log("Ejecutando configuración inicial...");
 
     const userRepo = AppDataSource.getRepository(User.options.name);
-    const asignaturaRepo = AppDataSource.getRepository(Asignatura.options.name);
     
     // Usuarios iniciales a crear
     const usersData = [
