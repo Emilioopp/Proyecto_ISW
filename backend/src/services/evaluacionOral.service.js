@@ -40,7 +40,7 @@ export const crearEvaluacionOral = async (data) => {
 export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
   try {
     const evaluaciones = await evaluacionRepo.find({
-      asignatura_id: asignaturaId,
+      where: { asignatura_id: Number(asignaturaId) },
     });
     return evaluaciones;
   } catch (error) {

@@ -14,11 +14,12 @@ const Asignaturas = () => {
 
   useEffect(() => {
     cargarAsignaturas();
-  }, []);
+  }, [user]);
 
   const cargarAsignaturas = async () => {
     try {
-      const response = await axios.get("/asignaturas");
+      const endpoint = user?.rol === 'Profesor' ? '/profesores/mis-asignaturas' : '/asignaturas';
+      const response = await axios.get(endpoint);
       if (response.data.status === "Success") {
         setAsignaturas(response.data.data);
       }
