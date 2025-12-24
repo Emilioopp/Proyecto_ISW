@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getMisEstadisticas } from "../services/estudiante.service";
 import {
   BarChart,
@@ -17,6 +18,7 @@ import "../styles/estadisticas.css";
 const MisEstadisticas = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // Hook para navegar
 
   useEffect(() => {
     cargarDatos();
@@ -36,10 +38,11 @@ const MisEstadisticas = () => {
     }
   };
 
+  // Función para determinar el color de la barra según la nota
   const getColorNota = (nota) => {
-    if (nota >= 6.0) return "#2ecc71";
-    if (nota >= 4.0) return "#3498db";
-    return "#e74c3c";
+    if (nota >= 6.0) return "#2ecc71"; // Verde
+    if (nota >= 4.0) return "#3498db"; // Azul
+    return "#e74c3c"; // Rojo
   };
 
   if (loading) {
@@ -55,7 +58,18 @@ const MisEstadisticas = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
       <div className="dashboard-container">
-        <h1 className="dashboard-title">📊 Mi Rendimiento Académico</h1>
+        {/* Encabezado con Título y Botón Volver (Ahora en tarjeta blanca) */}
+        <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-0">
+            📊 Mi Rendimiento Académico
+          </h1>
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md"
+          >
+            ← Volver
+          </button>
+        </div>
 
         {/* --- TARJETAS DE RESUMEN --- */}
         <div className="stats-grid">

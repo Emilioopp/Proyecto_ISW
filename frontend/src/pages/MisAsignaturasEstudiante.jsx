@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMisAsignaturas } from "../services/estudiante.service"; // Asegúrate de tener esta función en tu service
+import { getMisAsignaturas } from "../services/estudiante.service";
 import "../styles/styles.css";
 
 const MisAsignaturasEstudiante = () => {
@@ -14,7 +14,6 @@ const MisAsignaturasEstudiante = () => {
 
   const cargarAsignaturas = async () => {
     try {
-      // Esta función llama a: /estudiantes/mis-asignaturas-lista
       const response = await getMisAsignaturas();
       if (response.status === "Success") {
         setAsignaturas(response.data);
@@ -48,7 +47,7 @@ const MisAsignaturasEstudiante = () => {
               onClick={() => navigate("/estudiante/historial")}
               className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg shadow"
             >
-              ⏱ Ver Historial Completo
+              Ver Historial de Notas
             </button>
           </div>
 

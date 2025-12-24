@@ -13,11 +13,9 @@ import VerEvaluaciones from "@pages/VerEvaluaciones.jsx";
 import Placeholder from "@components/Placeholder";
 import DetalleEvaluacion from "@pages/DetalleEvaluacion";
 import MisEstadisticas from "@pages/MisEstadisticas";
-/*
 import MisAsignaturasEstudiante from "@pages/MisAsignaturasEstudiante";
-/*
 import NotasEstudiante from "@pages/NotasEstudiante";
-import HistorialEstudiante from "@pages/HistorialEstudiante";*/
+import HistorialEstudiante from "@pages/HistorialEstudiante";
 import "@styles/styles.css";
 
 const router = createBrowserRouter([
@@ -50,7 +48,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      /*
       {
         path: "/estudiante/mis-asignaturas",
         element: (
@@ -76,7 +73,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-*/
       {
         path: "/mis-estadisticas",
         element: (

@@ -129,7 +129,7 @@ const Home = () => {
                 </button>
                 {/* ----------------------------------- */}
                 <button
-                  onClick={() => navigate("/mis-asignaturas")}
+                  onClick={() => navigate("/estudiante/mis-asignaturas")}
                   className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-6 px-4 rounded-xl transition-all transform hover:scale-105"
                 >
                   📚 Mis Asignaturas
