@@ -2,9 +2,9 @@ import { EntitySchema, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, Man
 import { Asignatura } from "./asignatura.entity.js";
 import { User } from "./user.entity.js"; 
 
-export const Tema = new EntitySchema({
-  name: "Tema",
-  tableName: "temas",
+export const Tema_oral = new EntitySchema({
+  name: "Tema_oral",
+  tableName: "temas_orales",
     columns: {
         id: {
             primary: true,

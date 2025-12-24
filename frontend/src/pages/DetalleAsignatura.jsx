@@ -16,7 +16,6 @@ const DetalleAsignatura = () => {
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
 
-  // Cargar los datos de la asignatura
   useEffect(() => {
     cargarAsignatura();
   }, [id]);
@@ -77,8 +76,7 @@ const DetalleAsignatura = () => {
   const handleCrearEvaluacion = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`/evaluaciones-orales`, {
-        codigo_asignatura: asignatura.codigo,
+      const response = await axios.post(`/evaluaciones-orales/${id}`, {
         titulo,
         descripcion,
       });
@@ -107,9 +105,18 @@ const DetalleAsignatura = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          {asignatura.nombre} ({asignatura.codigo})
-        </h1>
+        {/* ENCABEZADO CON BOTÓN VOLVER */}
+        <div className="flex justify-between items-center mb-6 border-b pb-4 border-gray-200">
+          <h1 className="text-3xl font-bold text-gray-800">
+            {asignatura.nombre} ({asignatura.codigo})
+          </h1>
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md"
+          >
+            ← Volver
+          </button>
+        </div>
 
         {/* Sección: asignar profesor (solo Admin) */}
         {user?.rol === 'Admin' && (
@@ -143,14 +150,17 @@ const DetalleAsignatura = () => {
         {/* Botón Crear Evaluación Oral */}
         <button
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all mb-4"
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all mb-4 shadow-md w-full sm:w-auto"
         >
           {mostrarFormulario ? "✖ Cancelar" : "➕ Crear Evaluación Oral"}
         </button>
 
         {/* Formulario de creación */}
         {mostrarFormulario && (
-          <form onSubmit={handleCrearEvaluacion} className="mt-4 space-y-4">
+          <form
+            onSubmit={handleCrearEvaluacion}
+            className="mt-4 space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200"
+          >
             <div>
               <label className="block font-semibold text-gray-700 mb-1">
                 Título
@@ -178,20 +188,27 @@ const DetalleAsignatura = () => {
             </div>
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all w-full"
             >
               Guardar Evaluación
             </button>
           </form>
         )}
 
+        <hr className="my-6 border-gray-200" />
+
         {/* Botón para ver evaluaciones */}
-        <button
-          onClick={() => navigate(`/asignaturas/${id}/evaluaciones`)}
-          className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-all mt-6"
-        >
-          Ver Evaluaciones
-        </button>
+        <div className="text-center sm:text-left">
+          <p className="text-gray-600 mb-2">
+            Gestionar evaluaciones existentes:
+          </p>
+          <button
+            onClick={() => navigate(`/asignaturas/${id}/evaluaciones`)}
+            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md w-full sm:w-auto"
+          >
+            📂 Ver Evaluaciones
+          </button>
+        </div>
       </div>
     </div>
   );
