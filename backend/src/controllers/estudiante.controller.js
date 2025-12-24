@@ -17,6 +17,7 @@ import {
   buscarEstudiantePorEmailService,
   obtenerNotasPorAsignatura,
   obtenerHistorialNotas,
+  obtenerEstadisticasEstudiante,
 } from "../services/estudiante.service.js";
 
 export async function inscribirEstudiante(req, res) {
@@ -221,6 +222,23 @@ export const verHistorial = async (req, res) => {
       200,
       "Historial de notas recuperado exitosamente",
       historial
+    );
+  } catch (error) {
+    handleErrorServer(res, error);
+  }
+};
+
+export const verEstadisticas = async (req, res) => {
+  try {
+    const estudianteId = req.user.sub; // ID del token
+
+    const estadisticas = await obtenerEstadisticasEstudiante(estudianteId);
+
+    handleSuccess(
+      res,
+      200,
+      "Estadísticas calculadas correctamente",
+      estadisticas
     );
   } catch (error) {
     handleErrorServer(res, error);
