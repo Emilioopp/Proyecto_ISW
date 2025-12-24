@@ -3,6 +3,7 @@ import {
   crearProfesor,
   asignarProfesorAsignatura,
   desasignarProfesorAsignatura,
+  getMisAsignaturas,
   getProfesores,
   getProfesorById,
   updateProfesor,
@@ -15,15 +16,11 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// Solo Admin
 router.post("/", authorizeRoles("Admin"), crearProfesor); // http://localhost:3000/api/profesores
 router.post("/asignar", authorizeRoles("Admin"), asignarProfesorAsignatura); // http://localhost:3000/api/profesores/asignar
-router.delete(
-  "/desasignar",
-  authorizeRoles("Admin"),
-  desasignarProfesorAsignatura
-); // http://localhost:3000/api/profesores/desasignar
+router.delete("/desasignar", authorizeRoles("Admin"), desasignarProfesorAsignatura); // http://localhost:3000/api/profesores/desasignar
 router.get("/", authorizeRoles("Admin"), getProfesores); // http://localhost:3000/api/profesores
+router.get("/mis-asignaturas", authorizeRoles("Profesor","Admin"), getMisAsignaturas); // http://localhost:3000/api/profesores/mis-asignaturas
 router.get("/:id", authorizeRoles("Admin"), getProfesorById); // http://localhost:3000/api/profesores/:id
 router.put("/:id", authorizeRoles("Admin"), updateProfesor); // http://localhost:3000/api/profesores/:id
 router.delete("/:id", authorizeRoles("Admin"), deleteProfesor); // http://localhost:3000/api/profesores/id

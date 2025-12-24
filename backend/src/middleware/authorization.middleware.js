@@ -8,9 +8,8 @@ export const authorizeRoles = (...roles) => {
     }
 
     if (!roles.includes(req.user.rol)) {
-        return handleErrorClient(res, 403, 
-        `Acceso denegado. Se requiere uno de los siguientes roles: ${roles.join(", ")}`
-        );
+        console.warn(`authorizeRoles: acceso denegado. ruta=${req.method} ${req.originalUrl} userRol=${req.user?.rol} required=${roles.join(", ")}`);
+        return handleErrorClient(res, 403, `Acceso denegado. Se requiere uno de los siguientes roles: ${roles.join(", ")}`);
     }
 
     next();
