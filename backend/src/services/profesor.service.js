@@ -170,6 +170,23 @@ export async function getProfesorByIdService(id) {
   }
 }
 
+export async function getMisAsignaturasService(profesorId) {
+  try {
+    const asignaciones = await paRepo.find({
+      where: { profesor_id: Number(profesorId) },
+      relations: ["asignatura"],
+      order: { id: "ASC" },
+    });
+
+    const asignaturas = asignaciones.map((a) => a.asignatura).filter(Boolean);
+
+    return [asignaturas, null];
+  } catch (error) {
+    console.error("Error al obtener asignaturas del profesor:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+
 export async function updateProfesorService(id, data) {
   try {
     const profesor = await userRepo.findOne({

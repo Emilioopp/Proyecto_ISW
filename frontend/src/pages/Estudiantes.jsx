@@ -44,13 +44,13 @@ const Estudiantes = () => {
 
   useEffect(() => {
     cargarAsignaturas();
-  }, []);
+  }, [user]);
 
   const cargarAsignaturas = async () => {
     try {
-       // implementar endpoint /api/profesores/mis-asignaturas)
-       const endpoint = user?.rol === 'Admin' ? '/asignaturas' : '/asignaturas'; // Cambiar a /profesores/mis-asignaturas cuando este
-       const response = await axios.get(endpoint);
+      // Admin ve todas las asignaturas. Profesor ve solo sus asignaturas.
+      const endpoint = user?.rol === 'Profesor' ? '/profesores/mis-asignaturas' : '/asignaturas';
+      const response = await axios.get(endpoint);
       if (response.data.status === 'Success') {
         setAsignaturas(response.data.data);
       }
