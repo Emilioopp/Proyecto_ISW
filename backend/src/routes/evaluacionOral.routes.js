@@ -11,11 +11,11 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/:asignaturaId", authMiddleware, crearEvaluacionOral); // http://localhost:3000/api/evaluaciones-orales/:asignaturaId
+router.post("/:id", authMiddleware, crearEvaluacionOral); // http://localhost:3000/api/evaluaciones-orales/:asignaturaId
 router.post("/:id/registro", authMiddleware, registrarNota);
 router.get("/:id/registros", authMiddleware, obtenerNotasPorEvaluacion);
 router.get(
-  "/:asignaturaId/evaluaciones",
+  "/:id/evaluaciones",
   authMiddleware,
   obtenerEvaluacionesPorAsignatura
 );

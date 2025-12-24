@@ -261,6 +261,15 @@ export const obtenerNotasPorAsignatura = async (estudianteId, asignaturaId) => {
   return notas;
 };
 
+export const getAsignaturasInscritas = async (estudianteId) => {
+  const inscripciones = await eaRepo.find({
+    where: { estudiante: { id: estudianteId } },
+    relations: ["asignatura"],
+  });
+
+  return inscripciones.map((inscripcion) => inscripcion.asignatura);
+};
+
 export const obtenerHistorialNotas = async (estudianteId) => {
   const historial = await notaRepository.find({
     where: {

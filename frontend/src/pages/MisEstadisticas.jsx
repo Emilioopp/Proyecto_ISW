@@ -1,0 +1,145 @@
+import { useEffect, useState } from "react";
+import { getMisEstadisticas } from "../services/estudiante.service";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import Swal from "sweetalert2";
+import "../styles/estadisticas.css";
+
+const MisEstadisticas = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    try {
+      const response = await getMisEstadisticas();
+      if (response.status === "Success") {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "No se pudieron cargar las estadísticas", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getColorNota = (nota) => {
+    if (nota >= 6.0) return "#2ecc71";
+    if (nota >= 4.0) return "#3498db";
+    return "#e74c3c";
+  };
+
+  if (loading) {
+    return (
+      <div className="text-white text-center mt-10">
+        Calculando rendimiento...
+      </div>
+    );
+  }
+
+  if (!stats) return null;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
+      <div className="dashboard-container">
+        <h1 className="dashboard-title">📊 Mi Rendimiento Académico</h1>
+
+        {/* --- TARJETAS DE RESUMEN --- */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <span className="stat-label">Promedio General</span>
+            <span
+              className={`stat-value ${
+                stats.promedioGeneral < 4.0 ? "nota-baja" : ""
+              }`}
+            >
+              {stats.promedioGeneral}
+            </span>
+          </div>
+
+          <div className="stat-card">
+            <span className="stat-label">Evaluaciones Rendidas</span>
+            <span className="stat-value" style={{ color: "#34495e" }}>
+              {stats.totalEvaluaciones}
+            </span>
+          </div>
+
+          <div className="stat-card">
+            <span className="stat-label">Estado Actual</span>
+            <span
+              className="stat-value"
+              style={{ fontSize: "1.5rem", marginTop: "20px" }}
+            >
+              {stats.promedioGeneral >= 4.0 ? "Aprobando" : "En Riesgo"}
+            </span>
+          </div>
+        </div>
+
+        {/* --- GRÁFICO DE BARRAS --- */}
+        <div className="charts-section">
+          <div className="chart-header">
+            <h2>Promedio por Asignatura</h2>
+            <p className="text-gray-500">
+              Comparativa de rendimiento entre ramos
+            </p>
+          </div>
+
+          <div className="chart-wrapper">
+            {stats.promedioPorAsignatura.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={stats.promedioPorAsignatura}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="asignatura" />
+                  <YAxis domain={[0, 7]} /> {/* Escala de 0 a 7 */}
+                  <Tooltip
+                    formatter={(value) => [`${value}`, "Promedio"]}
+                    contentStyle={{
+                      borderRadius: "10px",
+                      border: "none",
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+                    }}
+                  />
+                  <Legend />
+                  <Bar
+                    dataKey="promedio"
+                    name="Nota Promedio"
+                    radius={[5, 5, 0, 0]}
+                  >
+                    {stats.promedioPorAsignatura.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={getColorNota(entry.promedio)}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-20 text-gray-400">
+                No hay suficientes datos para generar el gráfico.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MisEstadisticas;

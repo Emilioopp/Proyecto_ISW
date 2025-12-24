@@ -15,6 +15,7 @@ import {
   desasignarEstudianteAsignaturaService,
   deleteEstudianteService,
   buscarEstudiantePorEmailService,
+  getAsignaturasInscritas,
   obtenerNotasPorAsignatura,
   obtenerHistorialNotas,
   obtenerEstadisticasEstudiante,
@@ -179,6 +180,26 @@ export async function buscarEstudiantePorEmail(req, res) {
     );
   }
 }
+
+export const verAsignaturasInscritas = async (req, res) => {
+  try {
+    const estudianteId = req.user.sub; // ID del token
+    const asignaturas = await getAsignaturasInscritas(estudianteId);
+
+    if (!asignaturas || asignaturas.length === 0) {
+      return handleSuccess(res, 200, "No tienes asignaturas inscritas", []);
+    }
+
+    handleSuccess(
+      res,
+      200,
+      "Asignaturas recuperadas correctamente",
+      asignaturas
+    );
+  } catch (error) {
+    handleErrorServer(res, error);
+  }
+};
 
 export const verNotasAsignatura = async (req, res) => {
   try {

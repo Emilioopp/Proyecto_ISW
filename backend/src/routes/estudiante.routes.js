@@ -9,6 +9,7 @@ import {
   desasignarEstudianteAsignatura,
   deleteEstudiante,
   buscarEstudiantePorEmail,
+  verAsignaturasInscritas,
   verNotasAsignatura,
   verHistorial,
   verEstadisticas,
@@ -20,6 +21,8 @@ router.use(authMiddleware);
 
 router.get("/mis-notas/historial", authMiddleware, verHistorial);
 // http:localhost:3000/api/estudiantes/mis-notas/historial
+
+router.get("/mis-asignaturas", authMiddleware, verAsignaturasInscritas);
 
 router.get("/mis-notas/:asignaturaId", authMiddleware, verNotasAsignatura);
 // http:localhost:3000/api/estudiantes/mis-notas/:asignaturaId

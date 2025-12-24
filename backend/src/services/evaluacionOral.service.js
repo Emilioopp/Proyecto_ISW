@@ -37,8 +37,12 @@ export const crearEvaluacionOral = async (data) => {
 
 export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
   try {
+    if (!asignaturaId || isNaN(Number(asignaturaId))) {
+      return [];
+    }
     const evaluaciones = await evaluacionRepo.find({
-      where: { asignatura: { id: asignaturaId } },
+      where: { asignatura: { id: Number(asignaturaId) } },
+      relations: ["asignatura"],
     });
     return evaluaciones;
   } catch (error) {
