@@ -261,6 +261,15 @@ export const obtenerNotasPorAsignatura = async (estudianteId, asignaturaId) => {
   return notas;
 };
 
+export const getAsignaturasInscritas = async (estudianteId) => {
+  const inscripciones = await eaRepo.find({
+    where: { estudiante: { id: estudianteId } },
+    relations: ["asignatura"],
+  });
+
+  return inscripciones.map((inscripcion) => inscripcion.asignatura);
+};
+
 export const obtenerHistorialNotas = async (estudianteId) => {
   const historial = await notaRepository.find({
     where: {
@@ -278,4 +287,59 @@ export const obtenerHistorialNotas = async (estudianteId) => {
   });
 
   return historial;
+};
+
+export const obtenerEstadisticasEstudiante = async (estudianteId) => {
+  const notas = await notaRepository.find({
+    where: { estudiante: { id: estudianteId } },
+    relations: ["evaluacion_oral", "evaluacion_oral.asignatura"],
+  });
+
+  if (!notas || notas.length === 0) {
+    return {
+      promedioGeneral: 0,
+      totalEvaluaciones: 0,
+      promedioPorAsignatura: [],
+    };
+  }
+
+  const sumaTotal = notas.reduce((acc, curr) => acc + Number(curr.nota), 0);
+  const promedioGeneral = sumaTotal / notas.length;
+
+  const asignaturasMap = {};
+
+  notas.forEach((registro) => {
+    if (!registro.evaluacion_oral || !registro.evaluacion_oral.asignatura)
+      return;
+
+    const asignaturaNombre = registro.evaluacion_oral.asignatura.nombre;
+    const nota = Number(registro.nota);
+
+    if (!asignaturasMap[asignaturaNombre]) {
+      asignaturasMap[asignaturaNombre] = {
+        suma: 0,
+        cantidad: 0,
+        codigo: registro.evaluacion_oral.asignatura.codigo,
+      };
+    }
+
+    asignaturasMap[asignaturaNombre].suma += nota;
+    asignaturasMap[asignaturaNombre].cantidad += 1;
+  });
+
+  const promedioPorAsignatura = Object.keys(asignaturasMap).map((nombre) => {
+    const datos = asignaturasMap[nombre];
+    return {
+      asignatura: nombre,
+      codigo: datos.codigo,
+      promedio: parseFloat((datos.suma / datos.cantidad).toFixed(1)),
+      cantidadEvaluaciones: datos.cantidad,
+    };
+  });
+
+  return {
+    promedioGeneral: parseFloat(promedioGeneral.toFixed(1)),
+    totalEvaluaciones: notas.length,
+    promedioPorAsignatura: promedioPorAsignatura,
+  };
 };

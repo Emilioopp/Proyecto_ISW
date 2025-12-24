@@ -9,13 +9,27 @@ import {
   desasignarEstudianteAsignatura,
   deleteEstudiante,
   buscarEstudiantePorEmail,
+  verAsignaturasInscritas,
   verNotasAsignatura,
   verHistorial,
+  verEstadisticas,
 } from "../controllers/estudiante.controller.js";
 
 const router = Router();
 
 router.use(authMiddleware);
+
+router.get("/mis-notas/historial", authMiddleware, verHistorial);
+// http:localhost:3000/api/estudiantes/mis-notas/historial
+
+router.get("/mis-asignaturas", authMiddleware, verAsignaturasInscritas);
+// http:localhost:3000/api/estudiantes/mis-asignaturas
+
+router.get("/mis-notas/:asignaturaId", authMiddleware, verNotasAsignatura);
+// http:localhost:3000/api/estudiantes/mis-notas/:asignaturaId
+
+router.get("/mis-estadisticas", authMiddleware, verEstadisticas);
+// http:localhost:3000/api/estudiantes/mis-estadisticas
 
 router.post(
   "/inscribir",
@@ -57,11 +71,5 @@ router.delete(
 
 router.delete("/:id", authorizeRoles("Admin"), deleteEstudiante);
 // http:localhost:3000/api/estudiantes/:id
-
-router.get("/mis-notas/historial", authMiddleware, verHistorial);
-// http:localhost:3000/api/estudiantes/mis-notas/historial
-
-router.get("/mis-notas/:asignaturaId", authMiddleware, verNotasAsignatura);
-// http:localhost:3000/api/estudiantes/mis-notas/:asignaturaId
 
 export default router;

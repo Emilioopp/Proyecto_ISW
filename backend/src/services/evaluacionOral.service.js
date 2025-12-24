@@ -16,7 +16,6 @@ const asignaturaRepo = AppDataSource.getRepository(Asignatura);
 export const crearEvaluacionOral = async (data) => {
   const { asignaturaId, profesor_id, titulo, descripcion } = data;
 
-  // Buscar la asignatura por código
   const asignatura = await asignaturaRepo.findOne({
     where: { id: asignaturaId },
   });
@@ -37,8 +36,12 @@ export const crearEvaluacionOral = async (data) => {
 
 export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
   try {
+    if (!asignaturaId || isNaN(Number(asignaturaId))) {
+      return [];
+    }
     const evaluaciones = await evaluacionRepo.find({
-      where: { asignatura_id: Number(asignaturaId) },
+      where: { asignatura: { id: Number(asignaturaId) } },
+      relations: ["asignatura"],
     });
     return evaluaciones;
   } catch (error) {
@@ -46,14 +49,12 @@ export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
   }
 };
 
-// Registrar nota y observación
 export const registrarNota = async ({
   evaluacion_oral_id,
   estudiante_id,
   nota,
   observacion,
 }) => {
-  //Verificar que la nota esté en el rango válido
   if (typeof nota !== "number" || nota < 1.0 || nota > 7.0) {
     throw new Error("La nota debe ser un número entre 1.0 y 7.0");
   }
@@ -63,7 +64,6 @@ export const registrarNota = async ({
     relations: ["asignatura"],
   });
   if (!evaluacionObj) throw new Error("La evaluación oral no existe");
-  // Verificar que el estudiante esté inscrito en la asignatura
   const inscrito = await estudianteAsignaturaRepo.findOne({
     where: {
       estudiante: { id: estudiante_id },
@@ -76,7 +76,6 @@ export const registrarNota = async ({
       "El estudiante no está inscrito en la asignatura de esta evaluación"
     );
 
-  // Verificar si ya existe un registro previo
   const existente = await notaRepo.findOne({
     where: {
       evaluacion_oral: { id: evaluacion_oral_id },
@@ -97,7 +96,6 @@ export const registrarNota = async ({
 
   const guardada = await notaRepo.save(nuevaNota);
 
-  // Simular envío de notificación
   const alumno = await userRepo.findOne({ where: { id: estudiante_id } });
   console.log(
     `Notificación enviada a ${alumno.email}: nota ${nota} registrada.`
@@ -106,7 +104,6 @@ export const registrarNota = async ({
   return guardada;
 };
 
-// Obtener notas por evaluación
 export const obtenerNotasPorEvaluacion = async (evaluacion_oral_id) => {
   return await notaRepo.find({
     where: { evaluacion_oral: { id: evaluacion_oral_id } },
