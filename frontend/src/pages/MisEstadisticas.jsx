@@ -18,7 +18,7 @@ import "../styles/estadisticas.css";
 const MisEstadisticas = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // Hook para navegar
+  const navigate = useNavigate();
 
   useEffect(() => {
     cargarDatos();
@@ -38,11 +38,10 @@ const MisEstadisticas = () => {
     }
   };
 
-  // Función para determinar el color de la barra según la nota
   const getColorNota = (nota) => {
-    if (nota >= 6.0) return "#2ecc71"; // Verde
-    if (nota >= 4.0) return "#3498db"; // Azul
-    return "#e74c3c"; // Rojo
+    if (nota >= 6.0) return "#2ecc71";
+    if (nota >= 4.0) return "#3498db";
+    return "#e74c3c";
   };
 
   if (loading) {
@@ -120,7 +119,7 @@ const MisEstadisticas = () => {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="asignatura" />
-                  <YAxis domain={[0, 7]} /> {/* Escala de 0 a 7 */}
+                  <YAxis domain={[0, 7]} />
                   <Tooltip
                     formatter={(value) => [`${value}`, "Promedio"]}
                     contentStyle={{
