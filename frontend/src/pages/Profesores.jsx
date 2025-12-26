@@ -39,8 +39,12 @@ const Profesores = () => {
   };
 
   useEffect(() => {
-    cargarProfesores();
-  }, []);
+    if (user?.rol === 'Admin') {
+      cargarProfesores();
+    } else {
+      setProfesores([]);
+    }
+  }, [user]);
 
   const cargarProfesores = async () => {
     try {

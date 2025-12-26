@@ -20,6 +20,7 @@ export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
     });
   }
 };
+
 export const crearEvaluacionOral = async (req, res) => {
   try {
     const profesor_id = req.user.sub;

@@ -4,6 +4,7 @@ import {
   desasignarProfesorAsignaturaService,
   getProfesoresService,
   getProfesorByIdService,
+  getMisAsignaturasService,
   updateProfesorService,
   deleteProfesorService,
 } from "../services/profesor.service.js";
@@ -125,6 +126,17 @@ export async function getProfesorById(req, res) {
     handleSuccess(res, 200, "Profesor obtenido exitosamente", profesor);
   } catch (error) {
     handleErrorServer(res, 500, "Error al obtener profesor", error.message);
+  }
+}
+
+export async function getMisAsignaturas(req, res) {
+  try {
+    const profesorId = req.user.sub;
+    const [asignaturas, error] = await getMisAsignaturasService(profesorId);
+    if (error) return handleErrorClient(res, 400, error);
+    return handleSuccess(res, 200, "Asignaturas obtenidas", asignaturas);
+  } catch (error) {
+    return handleErrorServer(res, 500, "Error al obtener mis asignaturas", error.message);
   }
 }
 
