@@ -91,6 +91,16 @@ export const Evaluacion = new EntitySchema({
       target: "NotaEvaluacion",
       inverseSide: "evaluacion",
     },
+    temas: {
+      type: "many-to-many",
+      target: "TemaEvaluacion",
+      joinTable: {
+        name: "evaluacion_temas", // Tabla intermedia
+        joinColumn: { name: "evaluacion_id", referencedColumnName: "id" },
+        inverseJoinColumn: { name: "tema_id", referencedColumnName: "id" },
+      },
+      cascade: true,
+    },
     inscripciones: {
       type: "one-to-many",
       target: "InscripcionEvaluacion",
