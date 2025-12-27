@@ -14,7 +14,7 @@ export async function initialSetup() {
         nombre: "Administrador",
         rut: "12.345.678-9",
         email: "admin@ubiobio.cl",
-        password: "admin1234",
+        password: "admin123",
         rol: "Admin"
       },
       {
@@ -27,28 +27,28 @@ export async function initialSetup() {
       {
         nombre: "Carlos Ramírez",
         rut: "16.234.567-8",
-        email: "carlos.ramirez@ubiobio.cl",
+        email: "carlos.ramirez@gmail.com",
         password: "profesor123",
         rol: "Profesor"
       },
       {
         nombre: "Ana Martínez",
         rut: "20.123.456-7",
-        email: "ana.martinez@ubiobio.cl",
+        email: "ana.martinez@alumnos.ubiobio.cl",
         password: "estudiante123",
         rol: "Estudiante"
       },
       {
         nombre: "Pedro Sánchez",
         rut: "20.234.567-8",
-        email: "pedro.sanchez@ubiobio.cl",
+        email: "pedro.sanchez@alumnos.ubiobio.cl",
         password: "estudiante123",
         rol: "Estudiante"
       },
       {
         nombre: "Laura Torres",
         rut: "20.345.678-9",
-        email: "laura.torres@ubiobio.cl",
+        email: "laura.torres@alumnos.ubiobio.cl",
         password: "estudiante123",
         rol: "Estudiante"
       }
