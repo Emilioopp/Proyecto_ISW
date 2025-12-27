@@ -1,6 +1,9 @@
 import bcrypt from "bcrypt";
 import { AppDataSource } from "../config/configDb.js";
 import { User } from "../entities/user.entity.js";
+import { Asignatura } from "../entities/asignatura.entity.js";
+
+const asignaturaRepo = AppDataSource.getRepository(Asignatura.options.name);
 
 export async function initialSetup() {
   try {

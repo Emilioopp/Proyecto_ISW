@@ -28,17 +28,26 @@ export const evaluacionSchema = Joi.object({
     }),
 
   fecha_hora: Joi.date()
-    .optional()
+    .required()
     .messages({
       "date.base": "La fecha y hora deben ser válidas",
+      "any.required": "La fecha y hora son obligatorias",
     }),
 
-  lugar: Joi.string()
+  sala: Joi.string()
     .max(255)
+    .required()
+    .messages({
+      "string.max": "La sala no puede exceder 255 caracteres",
+      "any.required": "La sala es obligatoria",
+    }),
+
+  material_estudio: Joi.string()
+    .allow("")
     .optional()
     .messages({
-      "string.max": "El lugar no puede exceder 255 caracteres",
-    }),
+      "string.base": "El material de estudio debe ser una cadena de texto (links o referencias)",
+    }),  
 
   duracion_minutos: Joi.number()
     .integer()
@@ -96,12 +105,13 @@ export const actualizarEvaluacionSchema = Joi.object({
     }),
 
   fecha_hora: Joi.date()
-    .optional()
+    .required()
     .messages({
       "date.base": "La fecha y hora deben ser válidas",
+      "any.required": "La fecha y hora son obligatorias",
     }),
 
-  lugar: Joi.string()
+  sala: Joi.string()
     .max(255)
     .optional()
     .messages({

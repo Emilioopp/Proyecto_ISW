@@ -28,11 +28,18 @@ export const Evaluacion = new EntitySchema({
       type: "timestamp",
       nullable: true,
     },
-    lugar: {
+    sala: {
       type: "varchar",
       length: 255,
       nullable: true,
     },
+    material_estudio: {
+      type: "text",
+      nullable: true,
+      comment: "Enlaces o referencias bibliograficas"
+    },
+    
+
     duracion_minutos: {
       type: "int",
       nullable: true,

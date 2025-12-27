@@ -14,7 +14,7 @@ import {
   handleErrorServer,
   handleSuccess,
 } from "../Handlers/responseHandlers.js";
-import { evaluacionSchema } from "../validations/Evaluacion.validation.js";
+import { evaluacionSchema } from "../validations/evaluacion.validation.js";
 
 export const crearEvaluacionController = async (req, res) => {
   try {
