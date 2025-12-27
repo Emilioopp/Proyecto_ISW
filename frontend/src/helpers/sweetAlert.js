@@ -26,7 +26,7 @@ export function showQuestionAlert(idEvaluacion) {
       
       // Llamada al backend (usando ruta relativa)
       // Nota: Si tu backend está en otro puerto, configura el Proxy en vite.config.js
-      fetch(`/evaluaciones/eliminar/${idEvaluacion}`, {
+      fetch(`http://localhost:5432/evaluaciones/eliminar/${idEvaluacion}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json'
