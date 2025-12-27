@@ -14,7 +14,7 @@ export async function crearTema(req, res) {
 
   try {
     const profesorId = req.user.sub || req.user.id;
-    const tema = await temaService.crearTema({ ...value, profesorId });
+    const tema = await temaService.crearTema(value,{id: profesorId });
     return res.status(201).json({ status: "Success", message: "Tema creado exitosamente", data: tema });
   } catch (err) {
     return res.status(500).json({ message: err.message || "Error interno al crear tema" });
