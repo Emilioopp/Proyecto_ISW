@@ -32,6 +32,33 @@ export const crearEvaluacionOral = async (req, res) => {
     handleError(res, error);
   }
 };
+
+export const actualizarEvaluacionController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [evaluacion, error] = await actualizarEvaluacion(id, req.body);
+
+    if (error) return handleErrorClient(res, 404, error);
+
+    handleSuccess(res, 200, "Evaluación actualizada exitosamente", evaluacion);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+};
+
+export const eliminarEvaluacionController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [evaluacion, error] = await eliminarEvaluacion(id);
+
+    if (error) return handleErrorClient(res, 400, error);
+
+    handleSuccess(res, 200, "Evaluación eliminada exitosamente", evaluacion);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+};
+
 export const registrarNota = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
@@ -53,6 +80,7 @@ export const registrarNota = async (req, res) => {
     handleError(res, error);
   }
 };
+
 export const obtenerNotasPorEvaluacion = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);

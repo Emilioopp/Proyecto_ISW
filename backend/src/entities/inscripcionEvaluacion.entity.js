@@ -31,7 +31,7 @@ export const InscripcionEvaluacion = new EntitySchema({
   relations: {
     evaluacion: {
       type: "many-to-one",
-      target: "Evaluacion",
+      target: "EvaluacionOral",
       joinColumn: { name: "evaluacion_id" },
       onDelete: "CASCADE",
     },

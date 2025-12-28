@@ -8,6 +8,7 @@ import {
   actualizarNota,
 } from "../controllers/evaluacionOral.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authorizeRoles } from "../middleware/role.middleware.js";
 
 const router = express.Router();
 
@@ -19,6 +20,13 @@ router.get(
   authMiddleware,
   obtenerEvaluacionesPorAsignatura
 );
+
+// Actualizar evaluación (solo profesores)
+router.put("/update/:id", authorizeRoles("Profesor"), actualizarEvaluacionController);
+
+// Eliminar evaluación (solo profesores)
+router.delete("/delete/:id", authorizeRoles("Profesor"), eliminarEvaluacionController);
+
 router.put("/notas/:id", authMiddleware, actualizarNota);
 router.delete("/notas/:id", authMiddleware, eliminarNota);
 // api/evaluaciones-orales/notas/:id

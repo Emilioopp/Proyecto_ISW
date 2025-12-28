@@ -1,6 +1,6 @@
-﻿import Joi from "joi";
+import Joi from "joi";
 
-export const evaluacionSchema = Joi.object({
+export const EvaluacionOralSchema = Joi.object({
   titulo: Joi.string()
     .min(3)
     .max(255)
@@ -27,13 +27,6 @@ export const evaluacionSchema = Joi.object({
       "any.only": "El tipo debe ser: oral, presencial o entregable",
     }),
 
-  fecha_hora: Joi.date()
-    .required()
-    .messages({
-      "date.base": "La fecha y hora deben ser válidas",
-      "any.required": "La fecha y hora son obligatorias",
-    }),
-
   sala: Joi.string()
     .max(255)
     .required()
@@ -57,16 +50,6 @@ export const evaluacionSchema = Joi.object({
       "number.base": "La duración debe ser un número",
       "number.integer": "La duración debe ser un número entero",
       "number.min": "La duración debe ser al menos 1 minuto",
-    }),
-
-  cupos_disponibles: Joi.number()
-    .integer()
-    .min(1)
-    .optional()
-    .messages({
-      "number.base": "Los cupos deben ser un número",
-      "number.integer": "Los cupos deben ser un número entero",
-      "number.min": "Debe haber al menos 1 cupo disponible",
     }),
 
   estado: Joi.string()
@@ -104,13 +87,6 @@ export const actualizarEvaluacionSchema = Joi.object({
       "any.only": "El tipo debe ser: oral, presencial o entregable",
     }),
 
-  fecha_hora: Joi.date()
-    .required()
-    .messages({
-      "date.base": "La fecha y hora deben ser válidas",
-      "any.required": "La fecha y hora son obligatorias",
-    }),
-
   sala: Joi.string()
     .max(255)
     .optional()
@@ -126,16 +102,6 @@ export const actualizarEvaluacionSchema = Joi.object({
       "number.base": "La duración debe ser un número",
       "number.integer": "La duración debe ser un número entero",
       "number.min": "La duración debe ser al menos 1 minuto",
-    }),
-
-  cupos_disponibles: Joi.number()
-    .integer()
-    .min(1)
-    .optional()
-    .messages({
-      "number.base": "Los cupos deben ser un número",
-      "number.integer": "Los cupos deben ser un número entero",
-      "number.min": "Debe haber al menos 1 cupo disponible",
     }),
 
   estado: Joi.string()

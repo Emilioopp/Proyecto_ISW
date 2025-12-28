@@ -34,6 +34,50 @@ export const crearEvaluacionOral = async (data) => {
   return await evaluacionRepo.save(nuevaEvaluacion);
 };
 
+export const eliminarEvaluacion = async (id) => {
+  try {
+    const evaluacion = await EvaluacionOral.findOne({
+      where: { id },
+      relations: ["notas"],
+    });
+
+    if (!evaluacion) {
+      return [null, "Evaluación no encontrada"];
+    }
+
+    if (evaluacion.notas && evaluacion.notas.length > 0) {
+      return [null, "No se puede eliminar la evaluación porque tiene notas registradas"];
+    }
+
+    await EvaluacionOral.remove(evaluacion);
+    return [evaluacion, null];
+  } catch (error) {
+    console.error("Error al eliminar evaluación:", error);
+    return [null, "Error interno del servidor"];
+  }
+};
+
+export const actualizarEvaluacion = async (id, data) => {
+  try {
+    const evaluacion = await EvaluacionOral.findOne({ where: { id } });
+
+    if (!evaluacion) {
+      return [null, "Evaluación no encontrada"];
+    }
+
+    await EvaluacionOral.update(id, data);
+    const evaluacionActualizada = await EvaluacionOral.findOne({
+      where: { id },
+      relations: ["asignatura", "profesor"],
+    });
+
+    return [evaluacionActualizada, null];
+  } catch (error) {
+    console.error("Error al actualizar evaluación:", error);
+    return [null, "Error interno del servidor"];
+  }
+};
+
 export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
   try {
     if (!asignaturaId || isNaN(Number(asignaturaId))) {
