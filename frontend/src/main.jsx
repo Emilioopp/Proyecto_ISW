@@ -10,11 +10,14 @@ import Root from "@pages/Root";
 import ProtectedRoute from "@components/ProtectedRoute";
 import DetalleAsignatura from "@pages/DetalleAsignatura.jsx";
 import VerEvaluaciones from "@pages/VerEvaluaciones.jsx";
+import VerEvaluacionesPracticas from "@pages/VerEvaluacionesPracticas.jsx";
 import Placeholder from "@components/Placeholder";
 import DetalleEvaluacion from "@pages/DetalleEvaluacion";
+import DetalleEvaluacionPractica from "@pages/DetalleEvaluacionPractica";
 import MisEstadisticas from "@pages/MisEstadisticas";
 import MisAsignaturasEstudiante from "@pages/MisAsignaturasEstudiante";
 import NotasEstudiante from "@pages/NotasEstudiante";
+import AsignaturaEstudiante from "@pages/AsignaturaEstudiante";
 import HistorialEstudiante from "@pages/HistorialEstudiante";
 import "@styles/styles.css";
 
@@ -61,7 +64,31 @@ const router = createBrowserRouter([
         path: "/estudiante/asignaturas/:id",
         element: (
           <ProtectedRoute>
+            <AsignaturaEstudiante />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/estudiante/asignaturas/:id/notas",
+        element: (
+          <ProtectedRoute>
             <NotasEstudiante />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/estudiante/asignaturas/:id/practicas",
+        element: (
+          <ProtectedRoute>
+            <Placeholder titulo="Evaluaciones Prácticas" icono="📝" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/estudiante/asignaturas/:id/orales",
+        element: (
+          <ProtectedRoute>
+            <Placeholder titulo="Evaluaciones Orales" icono="🗣️" />
           </ProtectedRoute>
         ),
       },
@@ -146,10 +173,26 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/asignaturas/:id/evaluaciones-practicas",
+        element: (
+          <ProtectedRoute>
+            <VerEvaluacionesPracticas />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/mi-perfil",
         element: (
           <ProtectedRoute>
             <Placeholder titulo="Mi Perfil" icono="👤" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/evaluacion-practica/detalle/:id",
+        element: (
+          <ProtectedRoute>
+            <DetalleEvaluacionPractica />
           </ProtectedRoute>
         ),
       },

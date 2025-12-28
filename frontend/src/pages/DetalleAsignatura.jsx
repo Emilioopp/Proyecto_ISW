@@ -19,6 +19,10 @@ const DetalleAsignatura = () => {
   // ESTADOS FORMULARIO EVALUACIÓN
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [mostrarFormularioPractica, setMostrarFormularioPractica] = useState(false);
+  const [tituloPractica, setTituloPractica] = useState("");
+  const [descripcionPractica, setDescripcionPractica] = useState("");
+  const [tiempoMinutosPractica, setTiempoMinutosPractica] = useState(10);
   const [tipo, setTipo] = useState("oral");
   const [fechaHora, setFechaHora] = useState("");
   const [sala, setSala] = useState("");
@@ -29,7 +33,7 @@ const DetalleAsignatura = () => {
   const [temasSeleccionados, setTemasSeleccionados] = useState([]);
   
   // ESTADO FORMULARIO NUEVO TEMA
-  const [nuevoTemaTitulo, setNuevoTemaTitulo] = useState(""); // NUEVO
+  const [nuevoTemaTitulo, setNuevoTemaTitulo] = useState("");
 
   useEffect(() => {
     cargarAsignatura();
@@ -105,8 +109,8 @@ const DetalleAsignatura = () => {
         titulo, descripcion, tipo, fecha_hora: fechaHora, sala, material_estudio: material, temasIds: temasSeleccionados
       };
 
-      const response = await axios.post(`/evaluaciones/${id}`, payload); // Asegúrate de que esta ruta sea correcta en tu backend
-
+      const response = await axios.post(`/evaluaciones/${id}`, payload);
+      
       if (response.data.status === "Success") {
         showSuccessAlert("Éxito", "Evaluación creada correctamente");
         setTitulo(""); setDescripcion(""); setTipo("oral"); setFechaHora(""); setSala(""); setMaterial("");
@@ -119,12 +123,40 @@ const DetalleAsignatura = () => {
     }
   };
 
+  const handleCrearEvaluacionPractica = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`/evaluaciones-practicas`, {
+        asignatura_id: Number(id),
+        titulo: tituloPractica,
+        descripcion: descripcionPractica,
+        tiempo_minutos: Number(tiempoMinutosPractica),
+      });
+      if (response.data.status === "Success") {
+        showSuccessAlert("Éxito", "Evaluación práctica creada correctamente");
+        setTituloPractica("");
+        setDescripcionPractica("");
+        setTiempoMinutosPractica(10);
+        setMostrarFormularioPractica(false);
+      } else {
+        showErrorAlert(
+          "Error",
+          response.data.message || "Error al crear la evaluación práctica"
+        );
+      }
+    } catch (error) {
+      showErrorAlert(
+        "Error",
+        error.response?.data?.message || "Error al crear la evaluación práctica"
+      );
+    }
+  };
   if (!asignatura) return <p className="text-white text-center mt-10">Cargando...</p>;
 
+  if (!asignatura) return <p>Cargando asignatura...</p>;
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6">
-        
+      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6">    
         {/* HEADER */}
         <div className="flex justify-between items-center mb-6 border-b pb-4 border-gray-200">
           <h1 className="text-3xl font-bold text-gray-800">{asignatura.nombre} ({asignatura.codigo})</h1>
@@ -132,7 +164,164 @@ const DetalleAsignatura = () => {
             ← Volver
           </button>
         </div>
-
+        {/* Asignar profesor (solo Admin) */}
+        {user?.rol === 'Admin' && (
+          <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
+            <h2 className="text-xl font-bold mb-3">Profesores asignados</h2>
+            {asignatura.profesoresAsignados && asignatura.profesoresAsignados.length > 0 ? (
+              <ul className="mb-4">
+                {asignatura.profesoresAsignados.map((p) => (
+                  <li key={p.id} className="flex justify-between items-center py-2 border-b">
+                    <span>{p.nombre} — {p.email}</span>
+                    <button onClick={() => handleDesasignarProfesor(p.id)} className="text-red-500 hover:text-red-700">Desasignar</button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 mb-4">No hay profesores asignados a esta asignatura</p>
+            )}
+            <div className="flex gap-3 items-center">
+              <select value={profesorSeleccionado} onChange={(e) => setProfesorSeleccionado(e.target.value)} className="px-3 py-2 border rounded">
+                <option value="">-- Selecciona profesor --</option>
+                {profesores.map((prof) => (
+                  <option key={prof.id} value={prof.id}>{prof.nombre} — {prof.email}</option>
+                ))}
+              </select>
+              <button onClick={handleAsignarProfesor} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Asignar</button>
+            </div>
+          </div>
+        )}
+        {/* Evaluaciones Orales */}
+        <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h2 className="text-xl font-bold">Evaluaciones Orales</h2>
+            <button
+              onClick={() => setMostrarFormulario(!mostrarFormulario)}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-all shadow-md"
+            >
+              {mostrarFormulario ? "✖ Cancelar" : "➕ Crear Evaluación Oral"}
+            </button>
+          </div>
+          {mostrarFormulario && (
+            <form
+              onSubmit={handleCrearEvaluacion}
+              className="mt-4 space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200"
+            >
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Título
+                </label>
+                <input
+                  type="text"
+                  value={titulo}
+                  onChange={(e) => setTitulo(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                  placeholder="Ej: Examen Oral 1"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Descripción
+                </label>
+                <textarea
+                  value={descripcion}
+                  onChange={(e) => setDescripcion(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                  placeholder="Breve descripción de la evaluación"
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all w-full"
+              >
+                Guardar Evaluación
+              </button>
+            </form>
+          )}
+          <div className="mt-4">
+            <button
+              onClick={() => navigate(`/asignaturas/${id}/evaluaciones`)}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md w-full sm:w-auto"
+            >
+              📂 Ver Evaluaciones Orales
+            </button>
+          </div>
+        </div>
+        {/* Evaluaciones Practicas */}
+        <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h2 className="text-xl font-bold">Evaluaciones Prácticas</h2>
+            <button
+              onClick={() => setMostrarFormularioPractica(!mostrarFormularioPractica)}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-all shadow-md"
+            >
+              {mostrarFormularioPractica
+                ? "✖ Cancelar"
+                : "➕ Crear Evaluación Práctica"}
+            </button>
+          </div>
+          {mostrarFormularioPractica && (
+            <form
+              onSubmit={handleCrearEvaluacionPractica}
+              className="mt-4 space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200"
+            >
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Título
+                </label>
+                <input
+                  type="text"
+                  value={tituloPractica}
+                  onChange={(e) => setTituloPractica(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                  placeholder="Ej: Práctica 1"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Descripción
+                </label>
+                <textarea
+                  value={descripcionPractica}
+                  onChange={(e) => setDescripcionPractica(e.target.value)}
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                  placeholder="Breve descripción de la práctica"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Tiempo (minutos)
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={tiempoMinutosPractica}
+                  onChange={(e) => setTiempoMinutosPractica(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all w-full"
+              >
+                Guardar Evaluación Práctica
+              </button>
+            </form>
+          )}
+          <div className="mt-4">
+            <button
+              onClick={() => navigate(`/asignaturas/${id}/evaluaciones-practicas`)}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md w-full sm:w-auto"
+            >
+              📂 Ver Evaluaciones Prácticas
+            </button>
+          </div>
+        </div>
+        <hr className="my-6 border-gray-200" />
         {/* --- ZONA DE ACCIONES (BOTONES REORGANIZADOS) --- */}
         {(user?.rol === 'Profesor' || user?.rol === 'Admin') && (
           <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
@@ -257,7 +446,6 @@ const DetalleAsignatura = () => {
             Ver Listado Completo (En construcción)
           </button>
         </div>
-
       </div>
     </div>
   );
