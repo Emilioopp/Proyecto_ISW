@@ -63,7 +63,6 @@ const MisAsignaturasEstudiante = () => {
                 <div
                   key={asig.id}
                   className="bg-gray-50 rounded-xl p-6 border hover:shadow-lg transition-all cursor-pointer"
-                  // Redirige a la ruta de notas del estudiante
                   onClick={() =>
                     navigate(`/estudiante/asignaturas/${asig.id}`, {
                       state: { asignatura: asig },
@@ -78,7 +77,7 @@ const MisAsignaturasEstudiante = () => {
                     {asig.codigo}
                   </p>
                   <p className="text-blue-600 mt-4 font-semibold text-sm">
-                    Ver mis notas →
+                    Abrir asignatura →
                   </p>
                 </div>
               ))}

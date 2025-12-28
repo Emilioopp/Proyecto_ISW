@@ -5,12 +5,16 @@ import asignaturaRoutes from "./asignatura.routes.js";
 import estudianteRoutes from "./estudiante.routes.js";
 import profesorRoutes from "./profesor.routes.js";
 import evaluacionOralRoutes from "./evaluacionOral.routes.js";
+import evaluacionPracticaRoutes from "./evaluacionPractica.routes.js";
+import intentoEvaluacionRoutes from "./intentoEvaluacion.routes.js";
 
 export function routerApi(app) {
   const router = Router();
   app.use("/api", router);
 
   router.use("/evaluaciones-orales", evaluacionOralRoutes);
+  router.use("/evaluaciones-practicas", evaluacionPracticaRoutes);
+  router.use("/intentos", intentoEvaluacionRoutes);
   router.use("/auth", authRoutes);
   router.use("/profile", profileRoutes);
   router.use("/asignaturas", asignaturaRoutes);
