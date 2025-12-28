@@ -18,6 +18,7 @@ import "../styles/estadisticas.css";
 const MisEstadisticas = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,13 +27,16 @@ const MisEstadisticas = () => {
 
   const cargarDatos = async () => {
     try {
+      setLoadError(false);
       const response = await getMisEstadisticas();
       if (response.status === "Success") {
         setStats(response.data);
       }
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "No se pudieron cargar las estadísticas", "error");
+      setLoadError(true);
+      await Swal.fire("Error", "No se pudieron cargar las estadísticas", "error");
+      navigate("/home");
     } finally {
       setLoading(false);
     }
@@ -52,12 +56,50 @@ const MisEstadisticas = () => {
     );
   }
 
-  if (!stats) return null;
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl p-6">
+          <div className="flex justify-between items-center mb-4 border-b pb-3 border-gray-200">
+            <h1 className="text-2xl font-bold text-gray-800">📊 Mi Rendimiento</h1>
+            <button
+              onClick={() => navigate("/home")}
+              className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md"
+            >
+              ← Volver
+            </button>
+          </div>
+          <p className="text-gray-700">
+            No fue posible cargar tus estadísticas en este momento.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl p-6">
+          <div className="flex justify-between items-center mb-4 border-b pb-3 border-gray-200">
+            <h1 className="text-2xl font-bold text-gray-800">📊 Mi Rendimiento</h1>
+            <button
+              onClick={() => navigate("/home")}
+              className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md"
+            >
+              ← Volver
+            </button>
+          </div>
+          <p className="text-gray-700">Aún no hay datos para mostrar.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
       <div className="dashboard-container">
-        {/* Encabezado con Título y Botón Volver (Ahora en tarjeta blanca) */}
+        {/* Encabezado con Título y Botón Volver */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-0">
             📊 Mi Rendimiento Académico
