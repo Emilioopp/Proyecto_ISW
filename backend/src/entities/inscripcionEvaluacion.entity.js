@@ -1,13 +1,13 @@
-﻿import { EntitySchema } from "typeorm";
+import { EntitySchema } from "typeorm";
 
-export const NotaEvaluacion = new EntitySchema({
-  name: "NotaEvaluacion",
-  tableName: "notas_evaluaciones",
+export const InscripcionEvaluacion = new EntitySchema({
+  name: "InscripcionEvaluacion",
+  tableName: "inscripciones_evaluaciones",
   columns: {
     id: {
-      primary: true,
       type: "int",
-      generated: "increment",
+      primary: true,
+      generated: true,
     },
     evaluacion_id: {
       type: "int",
@@ -17,30 +17,24 @@ export const NotaEvaluacion = new EntitySchema({
       type: "int",
       nullable: false,
     },
-    nota: {
-      type: "decimal",
-      precision: 2,
-      scale: 1,
+    fecha_inscripcion: {
+      type: "timestamp with time zone",
+      default: () => "CURRENT_TIMESTAMP",
       nullable: false,
     },
-    observacion: {
-      type: "text",
+    asistio: {
+      type: "boolean",
+      default: false,
       nullable: true,
-    },
-    created_at: {
-      type: "timestamp",
-      createDate: true,
-      default: () => "CURRENT_TIMESTAMP",
     },
   },
   relations: {
     evaluacion: {
       type: "many-to-one",
-      target: "EvaluacionPractica",
+      target: "Evaluacion",
       joinColumn: { name: "evaluacion_id" },
       onDelete: "CASCADE",
     },
-
     estudiante: {
       type: "many-to-one",
       target: "User",
@@ -48,9 +42,11 @@ export const NotaEvaluacion = new EntitySchema({
       onDelete: "CASCADE",
     },
   },
-  uniques: [
+  indices: [
     {
+      name: "unique_inscripcion",
       columns: ["evaluacion_id", "estudiante_id"],
+      unique: true,
     },
   ],
 });

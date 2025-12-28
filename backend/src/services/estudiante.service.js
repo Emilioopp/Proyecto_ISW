@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+﻿import bcrypt from "bcrypt";
 import { AppDataSource } from "../config/configDb.js";
 import { User } from "../entities/user.entity.js";
 import { EstudianteAsignatura } from "../entities/EstudianteAsignatura.entity.js";
@@ -248,11 +248,11 @@ export const obtenerNotasPorAsignatura = async (estudianteId, asignaturaId) => {
   const notas = await notaRepository.find({
     where: {
       estudiante: { id: estudianteId },
-      evaluacion_oral: {
+      evaluacion: {
         asignatura: { id: asignaturaId },
       },
     },
-    relations: ["evaluacion_oral", "evaluacion_oral.asignatura"],
+    relations: ["evaluacion", "evaluacion.asignatura"],
     order: {
       id: "ASC",
     },
@@ -276,9 +276,9 @@ export const obtenerHistorialNotas = async (estudianteId) => {
       estudiante: { id: estudianteId },
     },
     relations: [
-      "evaluacion_oral",
-      "evaluacion_oral.asignatura",
-      "evaluacion_oral.profesor",
+      "evaluacion",
+      "evaluacion.asignatura",
+      "evaluacion.profesor",
     ],
     order: {
       id: "DESC",

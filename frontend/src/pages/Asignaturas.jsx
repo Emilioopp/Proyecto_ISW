@@ -61,7 +61,7 @@ const Asignaturas = () => {
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-800">
-              📚 Gestión de Asignaturas
+              {user?.rol === "Estudiante" ? "📚 Asignaturas Inscritas" : "📚 Gestión de Asignaturas"}
             </h1>
             <button
               onClick={() => navigate("/home")}
@@ -125,7 +125,7 @@ const Asignaturas = () => {
         {/* Listado de asignaturas */}
         <div className="bg-white rounded-2xl shadow-2xl p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Listado de Asignaturas
+            {user?.rol === "Estudiante" ? "Mis Asignaturas" : "Listado de Asignaturas"}
           </h2>
           {asignaturas.length === 0 ? (
             <p className="text-gray-500 text-center py-8">

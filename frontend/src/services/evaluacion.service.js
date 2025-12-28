@@ -1,12 +1,12 @@
-import axios from "./root.service";
+﻿import axios from "./root.service";
 
 export const getEvaluacionDetalle = async (id) => {
-  const response = await axios.get(`/evaluaciones-orales/${id}/registros`);
+  const response = await axios.get(`/evaluaciones/${id}/registros`);
   return response.data;
 };
 
 export const getNotasDeEvaluacion = async (id) => {
-  const response = await axios.get(`/evaluaciones-orales/${id}/registros`);
+  const response = await axios.get(`/evaluaciones/${id}/registros`);
   return response.data;
 };
 
@@ -17,7 +17,7 @@ export const getEstudiantesAsignatura = async (asignaturaId) => {
 
 export const registrarNota = async (evaluacionId, data) => {
   const response = await axios.post(
-    `/evaluaciones-orales/${evaluacionId}/registro`,
+    `/evaluaciones/${evaluacionId}/registro`,
     data
   );
   return response.data;
@@ -25,13 +25,13 @@ export const registrarNota = async (evaluacionId, data) => {
 
 export const updateNota = async (notaId, data) => {
   const response = await axios.put(
-    `/evaluaciones-orales/notas/${notaId}`,
+    `/evaluaciones/notas/${notaId}`,
     data
   );
   return response.data;
 };
 
 export const deleteNota = async (notaId) => {
-  const response = await axios.delete(`/evaluaciones-orales/notas/${notaId}`);
+  const response = await axios.delete(`/evaluaciones/notas/${notaId}`);
   return response.data;
 };

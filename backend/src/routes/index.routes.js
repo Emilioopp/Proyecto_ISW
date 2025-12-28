@@ -4,15 +4,15 @@ import profileRoutes from "./profile.routes.js";
 import asignaturaRoutes from "./asignatura.routes.js";
 import estudianteRoutes from "./estudiante.routes.js";
 import profesorRoutes from "./profesor.routes.js";
-import evaluacionOralRoutes from "./evaluacionOral.routes.js";
 import evaluacionPracticaRoutes from "./evaluacionPractica.routes.js";
 import intentoEvaluacionRoutes from "./intentoEvaluacion.routes.js";
+import evaluacionRoutes from "./evaluacion.routes.js";
+import temaEvaluacionRoutes from "./temaEvaluacion.routes.js";
 
 export function routerApi(app) {
   const router = Router();
   app.use("/api", router);
 
-  router.use("/evaluaciones-orales", evaluacionOralRoutes);
   router.use("/evaluaciones-practicas", evaluacionPracticaRoutes);
   router.use("/intentos", intentoEvaluacionRoutes);
   router.use("/auth", authRoutes);
@@ -20,4 +20,6 @@ export function routerApi(app) {
   router.use("/asignaturas", asignaturaRoutes);
   router.use("/estudiantes", estudianteRoutes);
   router.use("/profesores", profesorRoutes);
+  router.use("/evaluaciones", evaluacionRoutes);
+  router.use("/temas-evaluacion", temaEvaluacionRoutes);
 }

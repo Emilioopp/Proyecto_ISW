@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+﻿import bcrypt from "bcrypt";
 import { AppDataSource } from "../config/configDb.js";
 import { User } from "../entities/user.entity.js";
 import { ProfesorAsignatura } from "../entities/ProfesorAsignatura.entity.js";

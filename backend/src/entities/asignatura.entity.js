@@ -1,4 +1,4 @@
-import { EntitySchema } from "typeorm";
+﻿import { EntitySchema } from "typeorm";
 
 export const Asignatura = new EntitySchema({
   name: "Asignatura",
@@ -46,6 +46,11 @@ export const Asignatura = new EntitySchema({
     evaluacionesPracticas: {
       type: "one-to-many",
       target: "EvaluacionPractica",
+      inverseSide: "asignatura",
+    },
+    evaluaciones: {
+      type: "one-to-many",
+      target: "Evaluacion",
       inverseSide: "asignatura",
     },
   },
