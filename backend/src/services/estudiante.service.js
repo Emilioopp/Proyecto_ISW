@@ -3,10 +3,7 @@ import { AppDataSource } from "../config/configDb.js";
 import { User } from "../entities/user.entity.js";
 import { EstudianteAsignatura } from "../entities/EstudianteAsignatura.entity.js";
 import { ProfesorAsignatura } from "../entities/ProfesorAsignatura.entity.js";
-import {
-  formatearRUT,
-  extraerRutSinDigito,
-} from "../validations/usuario.validation.js";
+import { formatearRUT, extraerRutSinDigito } from "../validations/usuario.validation.js";
 import { NotaEvaluacion } from "../entities/NotaEvaluacion.entity.js";
 
 const userRepo = AppDataSource.getRepository(User.options.name);
@@ -14,12 +11,7 @@ const eaRepo = AppDataSource.getRepository(EstudianteAsignatura.options.name);
 const paRepo = AppDataSource.getRepository(ProfesorAsignatura.options.name);
 const notaRepository = AppDataSource.getRepository(NotaEvaluacion.options.name);
 
-export async function inscribirEstudianteService(
-  userId,
-  asignaturaId,
-  data,
-  rol = "Profesor"
-) {
+export async function inscribirEstudianteService(userId, asignaturaId, data, rol = "Profesor") {
   if (rol !== "Admin") {
     const asignacionProfesor = await paRepo.findOne({
       where: {
@@ -35,23 +27,20 @@ export async function inscribirEstudianteService(
   // Busca usuario por email
   let user = await userRepo.findOne({ where: { email: data.email } });
 
-  if (user) {
-    if (user.rol !== "Estudiante") {
-      return [
-        null,
-        "El email ya existe y pertenece a un usuario que no es Estudiante",
-      ];
-    }
-    const yaInscrito = await eaRepo.findOne({
-      where: { estudiante_id: user.id, asignatura_id: Number(asignaturaId) },
-    });
-    if (yaInscrito) {
-      return [null, "El estudiante ya esta inscrito en esta asignatura"];
-    }
-  } else {
-    if (!data.nombre || !data.rut) {
-      return [null, "Para crear un nuevo estudiante se requiere nombre y rut"];
-    }
+    if (user) {
+        if (user.rol !== "Estudiante") {
+            return [null, "El email ya existe y pertenece a un usuario que no es Estudiante"];
+        }
+        const yaInscrito = await eaRepo.findOne({
+            where: { estudiante_id: user.id, asignatura_id: Number(asignaturaId) },
+        });
+        if (yaInscrito) {
+            return [null, "El estudiante ya esta inscrito en esta asignatura"];
+        }
+    } else {
+        if (!data.nombre || !data.rut) {
+            return [null, "Para crear un nuevo estudiante se requiere nombre y rut"];
+        }
 
     const rutFormateado = formatearRUT(data.rut);
     const passwordPlano = extraerRutSinDigito(data.rut);
@@ -93,27 +82,19 @@ export async function inscribirEstudianteService(
   // Respuesta (password oculta)
   const { password, ...publicUser } = user;
   return [
-    { estudiante: publicUser, asignatura_id: Number(asignaturaId) },
-    null,
-  ];
+    { estudiante: publicUser, asignatura_id: Number(asignaturaId) }, null];
 }
 
-export async function getEstudiantesByAsignaturaService(
-  userId,
-  asignaturaId,
-  rol = "Profesor"
-) {
-  if (rol !== "Admin") {
-    const asignacionProfesor = await paRepo.findOne({
-      where: {
-        profesor_id: Number(userId),
-        asignatura_id: Number(asignaturaId),
-      },
-    });
-    if (!asignacionProfesor) {
-      return [null, "El profesor no está asignado a esta asignatura"];
+export async function getEstudiantesByAsignaturaService(userId, asignaturaId, rol = "Profesor") {
+    // Si es Profesor valida asignacion; Admin puede ver cualquier asignatura
+    if (rol !== "Admin") {
+        const asignacionProfesor = await paRepo.findOne({
+            where: { profesor_id: Number(userId), asignatura_id: Number(asignaturaId) },
+        });
+        if (!asignacionProfesor) {
+            return [null, "El profesor no está asignado a esta asignatura"];
+        }
     }
-  }
 
   const vinculos = await eaRepo.find({
     where: { asignatura_id: Number(asignaturaId) },
@@ -292,7 +273,7 @@ export const obtenerHistorialNotas = async (estudianteId) => {
 export const obtenerEstadisticasEstudiante = async (estudianteId) => {
   const notas = await notaRepository.find({
     where: { estudiante: { id: estudianteId } },
-    relations: ["evaluacion_oral", "evaluacion_oral.asignatura"],
+    relations: ["evaluacion", "evaluacion.asignatura"],
   });
 
   if (!notas || notas.length === 0) {
@@ -309,17 +290,17 @@ export const obtenerEstadisticasEstudiante = async (estudianteId) => {
   const asignaturasMap = {};
 
   notas.forEach((registro) => {
-    if (!registro.evaluacion_oral || !registro.evaluacion_oral.asignatura)
+    if (!registro.evaluacion || !registro.evaluacion.asignatura)
       return;
 
-    const asignaturaNombre = registro.evaluacion_oral.asignatura.nombre;
+    const asignaturaNombre = registro.evaluacion.asignatura.nombre;
     const nota = Number(registro.nota);
 
     if (!asignaturasMap[asignaturaNombre]) {
       asignaturasMap[asignaturaNombre] = {
         suma: 0,
         cantidad: 0,
-        codigo: registro.evaluacion_oral.asignatura.codigo,
+        codigo: registro.evaluacion.asignatura.codigo,
       };
     }
 

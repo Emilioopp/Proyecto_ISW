@@ -1,9 +1,6 @@
 import bcrypt from "bcrypt";
 import { AppDataSource } from "../config/configDb.js";
 import { User } from "../entities/user.entity.js";
-import { Asignatura } from "../entities/asignatura.entity.js";
-
-const asignaturaRepo = AppDataSource.getRepository(Asignatura.options.name);
 
 export async function initialSetup() {
   try {
@@ -11,7 +8,6 @@ export async function initialSetup() {
 
     const userRepo = AppDataSource.getRepository(User.options.name);
     
-    // Usuarios iniciales a crear
     const usersData = [
       {
         nombre: "Administrador",
@@ -61,16 +57,13 @@ export async function initialSetup() {
     let existingCount = 0;
 
     for (const userData of usersData) {
-      // Verificar si el usuario ya existe
       const existingUser = await userRepo.findOne({ 
         where: { email: userData.email } 
       });
 
       if (!existingUser) {
-        // Crear hash de la contraseña
         const hashedPassword = await bcrypt.hash(userData.password, 10);
         
-        // Crear usuario
         const newUser = userRepo.create({
           nombre: userData.nombre,
           rut: userData.rut,
@@ -99,56 +92,6 @@ export async function initialSetup() {
       console.log(`${existingCount} usuario(s) ya existían`);
     }
 
-    // Crear asignaturas iniciales
-    console.log("\nCreando asignaturas...");
-    
-    const asignaturasData = [
-      {
-        codigo: "INF-253",
-        nombre: "Ingeniería de Software"
-      },
-      {
-        codigo: "INF-239",
-        nombre: "Bases de Datos"
-      },
-      {
-        codigo: "INF-280",
-        nombre: "Programación Orientada a Objetos"
-      }
-    ];
-
-    let asignaturasCreated = 0;
-    let asignaturasExisting = 0;
-
-    for (const asignaturaData of asignaturasData) {
-      // Verificar si la asignatura ya existe
-      const existingAsignatura = await asignaturaRepo.findOne({
-        where: { codigo: asignaturaData.codigo }
-      });
-
-      if (!existingAsignatura) {
-        // Crear asignatura
-        const newAsignatura = asignaturaRepo.create({
-          codigo: asignaturaData.codigo,
-          nombre: asignaturaData.nombre
-        });
-        
-        await asignaturaRepo.save(newAsignatura);
-        
-        console.log(` Asignatura creada: ${asignaturaData.codigo} - ${asignaturaData.nombre}`);
-        asignaturasCreated++;
-      } else {
-        asignaturasExisting++;
-      }
-    }
-
-    if (asignaturasCreated > 0) {
-      console.log(` Se crearon ${asignaturasCreated} asignatura(s) nueva(s)`);
-    }
-    if (asignaturasExisting > 0) {
-      console.log(` ${asignaturasExisting} asignatura(s) ya existían`);
-    }
-    
     console.log(" Configuración inicial completada\n");
     
   } catch (error) {

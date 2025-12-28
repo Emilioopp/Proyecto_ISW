@@ -11,10 +11,12 @@ const DetalleAsignatura = () => {
 
   const [asignatura, setAsignatura] = useState(null);
   const [profesores, setProfesores] = useState([]);
+  const [profesorSeleccionado, setProfesorSeleccionado] = useState("");
   
   // ESTADOS DE VISIBILIDAD DE FORMULARIOS
   const [mostrarFormEvaluacion, setMostrarFormEvaluacion] = useState(false);
   const [mostrarFormTema, setMostrarFormTema] = useState(false); // NUEVO
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   // ESTADOS FORMULARIO EVALUACIÓN
   const [titulo, setTitulo] = useState("");
@@ -52,7 +54,49 @@ const DetalleAsignatura = () => {
     }
   };
 
-  const cargarProfesores = async () => { /* ... lógica admin ... */ };
+  const cargarProfesores = async () => {
+    try {
+      const response = await axios.get('/profesores');
+      if (response.data.status === 'Success') setProfesores(response.data.data);
+    } catch (error) {
+      showErrorAlert('Error', 'No se pudieron cargar los profesores');
+    }
+  };
+
+  const handleAsignarProfesor = async () => {
+    if (!profesorSeleccionado) return showErrorAlert('Error', 'Selecciona un profesor');
+    try {
+      const response = await axios.post('/profesores/asignar', {
+        profesorId: Number(profesorSeleccionado),
+        asignaturaId: Number(id),
+      });
+      if (response.data.status === 'Success') {
+        showSuccessAlert('Éxito', 'Profesor asignado correctamente');
+        setProfesorSeleccionado("");
+        cargarAsignatura();
+      } else {
+        showErrorAlert('Error', response.data.message || 'No se pudo asignar el profesor');
+      }
+    } catch (error) {
+      showErrorAlert('Error', error.response?.data?.message || 'Error al asignar profesor');
+    }
+  };
+
+  const handleDesasignarProfesor = async (profId) => {
+    try {
+      const response = await axios.delete('/profesores/desasignar', {
+        data: { profesorId: Number(profId), asignaturaId: Number(id) },
+      });
+      if (response.data.status === 'Success') {
+        showSuccessAlert('Éxito', 'Profesor desasignado correctamente');
+        cargarAsignatura();
+      } else {
+        showErrorAlert('Error', response.data.message || 'No se pudo desasignar el profesor');
+      }
+    } catch (error) {
+      showErrorAlert('Error', error.response?.data?.message || 'Error al desasignar profesor');
+    }
+  };
 
   const cargarTemasAsignatura = async () => {
     try {
@@ -151,16 +195,20 @@ const DetalleAsignatura = () => {
       );
     }
   };
-  if (!asignatura) return <p className="text-white text-center mt-10">Cargando...</p>;
 
-  if (!asignatura) return <p>Cargando asignatura...</p>;
+  if (!asignatura) return <p className="text-white text-center mt-10">Cargando...</p>;
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6">    
         {/* HEADER */}
         <div className="flex justify-between items-center mb-6 border-b pb-4 border-gray-200">
           <h1 className="text-3xl font-bold text-gray-800">{asignatura.nombre} ({asignatura.codigo})</h1>
-          <button onClick={() => navigate(-1)} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg shadow-md">
+          <button
+            onClick={() =>
+              navigate(user?.rol === "Profesor" ? "/mis-asignaturas" : "/asignaturas")
+            }
+            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg shadow-md"
+          >
             ← Volver
           </button>
         </div>
