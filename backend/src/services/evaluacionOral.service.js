@@ -4,7 +4,7 @@ import { NotaEvaluacion } from "../entities/NotaEvaluacion.entity.js";
 import { EstudianteAsignatura } from "../entities/EstudianteAsignatura.entity.js";
 import { User } from "../entities/user.entity.js";
 import { Asignatura } from "../entities/asignatura.entity.js";
-import { HorarioDisponible } from "../entities/horarioDisponible.entity.js";
+import { HorarioDisponible } from "../entities/HorarioDisponible.entity.js";
 import { TemaEvaluacion } from "../entities/temaEvaluacion.entity.js";
 
 
@@ -69,6 +69,11 @@ export const crearEvaluacionOral = async (data) => {
 
   const evaluacionGuardada = await evaluacionRepo.save(nuevaEvaluacion);
 
+  const evaluacionCompleta = await evaluacionRepo.findOne({
+  where: { id: evaluacionGuardada.id },
+  relations: ["horariosDisponibles", "temas"],
+  });
+
   // Crear horarios disponibles
   const horariosDisponibles = horarios.map((h) =>
     horarioRepo.create({
@@ -82,7 +87,7 @@ export const crearEvaluacionOral = async (data) => {
 
   await horarioRepo.save(horariosDisponibles);
 
-  return evaluacionGuardada;
+  return evaluacionCompleta;
 };
 
 

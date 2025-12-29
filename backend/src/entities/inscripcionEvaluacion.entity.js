@@ -47,8 +47,9 @@ export const InscripcionEvaluacion = new EntitySchema({
     },
     tema_asignado: {
       type: "many-to-one",
-      target: "TemaEvaluacio",
+      target: "TemaEvaluacion",
       joinColumn: { name: "tema_asignado_id" },
+      onDelete: "SET NULL",
     },
   },
   indices: [
