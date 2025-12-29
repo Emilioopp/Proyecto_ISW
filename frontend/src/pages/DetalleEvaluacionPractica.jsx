@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "../services/root.service";
-import { showErrorAlert, showSuccessToast } from "../helpers/sweetAlert";
+import { deleteDataAlert, showErrorAlert, showSuccessToast } from "../helpers/sweetAlert";
 
 const DetalleEvaluacionPractica = () => {
   const { id } = useParams();
@@ -25,6 +25,11 @@ const DetalleEvaluacionPractica = () => {
   const [qExplicacion, setQExplicacion] = useState("");
   const [qPuntaje, setQPuntaje] = useState(1);
   const [editandoId, setEditandoId] = useState(null);
+
+  const [materialFile, setMaterialFile] = useState(null);
+  const [subiendoMaterial, setSubiendoMaterial] = useState(false);
+  const [descargandoMaterial, setDescargandoMaterial] = useState(false);
+  const [eliminandoMaterial, setEliminandoMaterial] = useState(false);
 
   useEffect(() => {
     cargar();
@@ -90,6 +95,118 @@ const DetalleEvaluacionPractica = () => {
         error.response?.data?.message || "Error al actualizar"
       );
     }
+  };
+
+  const subirMaterial = async () => {
+    if (!materialFile) {
+      showErrorAlert("Error", "Debes seleccionar un PDF");
+      return;
+    }
+
+    const isPdf =
+      materialFile.type === "application/pdf" ||
+      materialFile.name?.toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      showErrorAlert("Error", "Solo se permite subir archivos PDF");
+      return;
+    }
+
+    setSubiendoMaterial(true);
+    try {
+      const form = new FormData();
+      form.append("material", materialFile);
+
+      const response = await axios.post(
+        `/evaluaciones-practicas/${Number(id)}/material`,
+        form
+      );
+
+      if (response.data.status === "Success") {
+        showSuccessToast("Material subido");
+        setMaterialFile(null);
+        await cargar();
+      } else {
+        showErrorAlert(
+          "Error",
+          response.data.message || "No se pudo subir el material"
+        );
+      }
+    } catch (error) {
+      showErrorAlert(
+        "Error",
+        error.response?.data?.message || "No se pudo subir el material"
+      );
+    } finally {
+      setSubiendoMaterial(false);
+    }
+  };
+
+  const descargarMaterial = async () => {
+    setDescargandoMaterial(true);
+    try {
+      const response = await axios.get(
+        `/evaluaciones-practicas/${Number(id)}/material`,
+        { responseType: "blob" }
+      );
+
+      const contentType =
+        response.headers?.["content-type"] || "application/pdf";
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+
+      const filename =
+        evaluacion?.material_nombre_original ||
+        `material-evaluacion-${Number(id)}.pdf`;
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 404) {
+        showErrorAlert("Error", "Esta evaluación no tiene material asociado");
+      } else {
+        showErrorAlert(
+          "Error",
+          error.response?.data?.message || "No se pudo descargar el material"
+        );
+      }
+    } finally {
+      setDescargandoMaterial(false);
+    }
+  };
+
+  const eliminarMaterial = () => {
+    deleteDataAlert(async () => {
+      setEliminandoMaterial(true);
+      try {
+        const response = await axios.delete(
+          `/evaluaciones-practicas/${Number(id)}/material`
+        );
+
+        if (response.data.status === "Success") {
+          showSuccessToast("Material eliminado");
+          await cargar();
+        } else {
+          showErrorAlert(
+            "Error",
+            response.data.message || "No se pudo eliminar el material"
+          );
+        }
+      } catch (error) {
+        showErrorAlert(
+          "Error",
+          error.response?.data?.message || "No se pudo eliminar el material"
+        );
+      } finally {
+        setEliminandoMaterial(false);
+      }
+    });
   };
 
   const limpiarForm = () => {
@@ -302,6 +419,54 @@ const DetalleEvaluacionPractica = () => {
               Guardar cambios
             </button>
           </form>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+            Material de estudio (PDF)
+          </h2>
+
+          <div className="space-y-3">
+            <p className="text-gray-600">
+              {evaluacion?.material_filename
+                ? `Material actual: ${evaluacion.material_nombre_original || "PDF"}`
+                : "No hay material subido aún."}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => setMaterialFile(e.target.files?.[0] || null)}
+                className="w-full"
+              />
+              <button
+                type="button"
+                onClick={subirMaterial}
+                disabled={!materialFile || subiendoMaterial}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white font-bold py-2 px-6 rounded-lg transition-all"
+              >
+                {subiendoMaterial ? "Subiendo..." : "Subir PDF"}
+              </button>
+              <button
+                type="button"
+                onClick={descargarMaterial}
+                disabled={!evaluacion?.material_filename || descargandoMaterial}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-2 px-6 rounded-lg transition-all"
+              >
+                {descargandoMaterial ? "Descargando..." : "Descargar"}
+              </button>
+
+              <button
+                type="button"
+                onClick={eliminarMaterial}
+                disabled={!evaluacion?.material_filename || eliminandoMaterial}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white font-bold py-2 px-6 rounded-lg transition-all"
+              >
+                {eliminandoMaterial ? "Eliminando..." : "Eliminar"}
+              </button>
+            </div>
+          </div>
         </div>
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">

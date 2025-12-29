@@ -4,12 +4,34 @@ import { Pregunta } from "../entities/pregunta.entity.js";
 import { Asignatura } from "../entities/asignatura.entity.js";
 import { ProfesorAsignatura } from "../entities/ProfesorAsignatura.entity.js";
 import { EstudianteAsignatura } from "../entities/EstudianteAsignatura.entity.js";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
 const evaluacionPracticaRepo = AppDataSource.getRepository(EvaluacionPractica.options.name);
 const preguntaRepo = AppDataSource.getRepository(Pregunta.options.name);
 const asignaturaRepo = AppDataSource.getRepository(Asignatura.options.name);
 const profesorAsignaturaRepo = AppDataSource.getRepository(ProfesorAsignatura.options.name);
 const estudianteAsignaturaRepo = AppDataSource.getRepository(EstudianteAsignatura.options.name);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsRoot = path.resolve(
+  __dirname,
+  "../../uploads/evaluaciones-practicas"
+);
+
+function safeUnlink(filePath) {
+  try {
+    fs.unlinkSync(filePath);
+  } catch {
+    // ignore
+  }
+}
+
+function getMaterialAbsolutePath({ evaluacionId, filename }) {
+  return path.join(uploadsRoot, String(Number(evaluacionId)), filename);
+}
 
 async function assertEstudianteInscrito({ estudianteId, asignaturaId }) {
   const inscrito = await estudianteAsignaturaRepo.findOne({
@@ -181,6 +203,8 @@ export async function obtenerEvaluacionPracticaPublicaPorId({ id, rol, userId })
     descripcion: evaluacion.descripcion,
     tiempo_minutos: evaluacion.tiempo_minutos,
     estado: evaluacion.estado,
+    tiene_material: Boolean(evaluacion.material_filename),
+    material_nombre_original: evaluacion.material_nombre_original ?? null,
     cantidad_preguntas,
     puntaje_total,
   };
@@ -235,9 +259,137 @@ export async function eliminarEvaluacionPractica({id, rol, userId}) {
 
   assertEsDuenoEvaluacion({rol, userId, evaluacion});
 
+  // Borra material asociado si existe
+  if (evaluacion.material_filename) {
+    const absPath = getMaterialAbsolutePath({
+      evaluacionId: evaluacion.id,
+      filename: evaluacion.material_filename,
+    });
+    safeUnlink(absPath);
+  }
+
   await evaluacionPracticaRepo.remove(evaluacion);
 
   return { id: Number(id) };
+}
+
+export async function subirMaterialEvaluacionPractica({ id, rol, userId, file }) {
+  const evaluacion = await evaluacionPracticaRepo.findOne({
+    where: { id: Number(id) },
+  });
+
+  if (!evaluacion) {
+    const error = new Error("Evaluación práctica no encontrada");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  assertEsDuenoEvaluacion({ rol, userId, evaluacion });
+
+  if (!file) {
+    const error = new Error("Archivo PDF es obligatorio");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Reemplaza material anterior
+  if (evaluacion.material_filename) {
+    const absPath = getMaterialAbsolutePath({
+      evaluacionId: evaluacion.id,
+      filename: evaluacion.material_filename,
+    });
+    safeUnlink(absPath);
+  }
+
+  evaluacion.material_nombre_original = file.originalname ?? null;
+  evaluacion.material_filename = file.filename;
+  evaluacion.material_mimetype = file.mimetype ?? null;
+  evaluacion.material_size = Number(file.size ?? 0) || null;
+
+  await evaluacionPracticaRepo.save(evaluacion);
+
+  return {
+    evaluacion_id: evaluacion.id,
+    material_nombre_original: evaluacion.material_nombre_original,
+    material_mimetype: evaluacion.material_mimetype,
+    material_size: evaluacion.material_size,
+  };
+}
+
+export async function obtenerMaterialEvaluacionPractica({ id, rol, userId }) {
+  const evaluacion = await evaluacionPracticaRepo.findOne({
+    where: { id: Number(id) },
+  });
+
+  if (!evaluacion) {
+    const error = new Error("Evaluación práctica no encontrada");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (rol === "Profesor") {
+    assertEsDuenoEvaluacion({ rol, userId, evaluacion });
+  }
+
+  if (rol === "Estudiante") {
+    if (evaluacion.estado !== "publica") {
+      const error = new Error("Evaluación práctica no encontrada o no pública");
+      error.statusCode = 404;
+      throw error;
+    }
+    await assertEstudianteInscrito({
+      estudianteId: userId,
+      asignaturaId: evaluacion.asignatura_id,
+    });
+  }
+
+  if (!evaluacion.material_filename) {
+    const error = new Error("Esta evaluación no tiene material asociado");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const absolutePath = getMaterialAbsolutePath({
+    evaluacionId: evaluacion.id,
+    filename: evaluacion.material_filename,
+  });
+
+  return {
+    absolutePath,
+    nombreOriginal: evaluacion.material_nombre_original ?? "material.pdf",
+    mimetype: evaluacion.material_mimetype ?? "application/pdf",
+  };
+}
+
+export async function eliminarMaterialEvaluacionPractica({ id, rol, userId }) {
+  const evaluacion = await evaluacionPracticaRepo.findOne({
+    where: { id: Number(id) },
+  });
+
+  if (!evaluacion) {
+    const error = new Error("Evaluación práctica no encontrada");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  assertEsDuenoEvaluacion({ rol, userId, evaluacion });
+
+  if (evaluacion.material_filename) {
+    const absPath = getMaterialAbsolutePath({
+      evaluacionId: evaluacion.id,
+      filename: evaluacion.material_filename,
+    });
+    safeUnlink(absPath);
+  }
+
+  evaluacion.material_nombre_original = null;
+  evaluacion.material_filename = null;
+  evaluacion.material_mimetype = null;
+  evaluacion.material_size = null;
+
+  await evaluacionPracticaRepo.save(evaluacion);
+
+  return { evaluacion_id: evaluacion.id };
 }
 
 export async function crearPreguntaEvaluacionPractica({evaluacionId, rol, userId, data}) {

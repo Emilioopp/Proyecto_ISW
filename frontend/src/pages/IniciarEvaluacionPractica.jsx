@@ -12,6 +12,7 @@ const IniciarEvaluacionPractica = () => {
   const [iniciando, setIniciando] = useState(false);
   const [intentoActivo, setIntentoActivo] = useState(null);
   const [cargandoIntentoActivo, setCargandoIntentoActivo] = useState(false);
+  const [descargandoMaterial, setDescargandoMaterial] = useState(false);
 
   useEffect(() => {
     cargarEvaluacion();
@@ -122,6 +123,45 @@ const IniciarEvaluacionPractica = () => {
     navigate(-1);
   };
 
+  const descargarMaterial = async () => {
+    setDescargandoMaterial(true);
+    try {
+      const response = await axios.get(
+        `/evaluaciones-practicas/${Number(id)}/material`,
+        { responseType: "blob" }
+      );
+
+      const contentType =
+        response.headers?.["content-type"] || "application/pdf";
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+
+      const filename =
+        evaluacion?.material_nombre_original ||
+        `material-evaluacion-${Number(id)}.pdf`;
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 404) {
+        showErrorAlert("Error", "Esta evaluación no tiene material asociado");
+      } else {
+        showErrorAlert(
+          "Error",
+          error.response?.data?.message || "No se pudo descargar el material"
+        );
+      }
+    } finally {
+      setDescargandoMaterial(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
@@ -188,6 +228,22 @@ const IniciarEvaluacionPractica = () => {
                 ) || 0)}{" "}
                 puntos
               </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="font-semibold text-gray-700">📎 Material:</span>
+              {evaluacion.tiene_material ? (
+                <button
+                  type="button"
+                  onClick={descargarMaterial}
+                  disabled={descargandoMaterial}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-1.5 px-4 rounded-lg transition-all shadow-md"
+                >
+                  {descargandoMaterial ? "Descargando..." : "Descargar PDF"}
+                </button>
+              ) : (
+                <span className="text-gray-600">No disponible</span>
+              )}
             </div>
           </div>
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">

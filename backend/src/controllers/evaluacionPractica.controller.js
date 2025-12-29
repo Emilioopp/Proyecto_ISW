@@ -9,8 +9,18 @@ import {
     actualizarPreguntaEvaluacionPractica,
     eliminarPreguntaEvaluacionPractica,
     obtenerEvaluacionPracticaPublicaPorId,
+    subirMaterialEvaluacionPractica,
+    obtenerMaterialEvaluacionPractica,
+    eliminarMaterialEvaluacionPractica,
 } from "../services/evaluacionPractica.service.js";
 import { handleError, handleErrorClient, handleSuccess } from "../Handlers/responseHandlers.js";
+
+function buildContentDispositionFilename(filename) {
+  const safe = (filename || "material.pdf").replace(/[\r\n"]/g, "");
+  const encoded = encodeURIComponent(safe);
+  // RFC 5987
+  return `inline; filename="${safe}"; filename*=UTF-8''${encoded}`;
+}
 
 function isBlankString(value) {
   return typeof value !== "string" || value.trim().length === 0;
@@ -372,6 +382,81 @@ export async function deletePreguntaEvaluacionPractica(req, res) {
     });
 
     return handleSuccess(res, 200, "Pregunta eliminada", { id: Number(preguntaId) });
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function postMaterialEvaluacionPractica(req, res) {
+  try {
+    const rol = req.user.rol;
+    const userId = req.user.sub;
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      return handleErrorClient(res, 400, "id inválido");
+    }
+
+    const file = req.file;
+
+    const data = await subirMaterialEvaluacionPractica({
+      id: Number(id),
+      rol,
+      userId: Number(userId),
+      file,
+    });
+
+    return handleSuccess(res, 200, "Material subido", data);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function getMaterialEvaluacionPractica(req, res) {
+  try {
+    const rol = req.user.rol;
+    const userId = req.user.sub;
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      return handleErrorClient(res, 400, "id inválido");
+    }
+
+    const material = await obtenerMaterialEvaluacionPractica({
+      id: Number(id),
+      rol,
+      userId: Number(userId),
+    });
+
+    res.setHeader("Content-Type", material.mimetype);
+    res.setHeader(
+      "Content-Disposition",
+      buildContentDispositionFilename(material.nombreOriginal)
+    );
+
+    return res.sendFile(material.absolutePath);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function deleteMaterialEvaluacionPractica(req, res) {
+  try {
+    const rol = req.user.rol;
+    const userId = req.user.sub;
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      return handleErrorClient(res, 400, "id inválido");
+    }
+
+    const data = await eliminarMaterialEvaluacionPractica({
+      id: Number(id),
+      rol,
+      userId: Number(userId),
+    });
+
+    return handleSuccess(res, 200, "Material eliminado", data);
   } catch (error) {
     return handleError(res, error);
   }
