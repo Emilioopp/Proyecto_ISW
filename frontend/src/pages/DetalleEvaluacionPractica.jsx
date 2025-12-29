@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "../services/root.service";
-import { showErrorAlert, showSuccessAlert } from "../helpers/sweetAlert";
+import { showErrorAlert, showSuccessToast } from "../helpers/sweetAlert";
 
 const DetalleEvaluacionPractica = () => {
   const { id } = useParams();
@@ -24,10 +24,10 @@ const DetalleEvaluacionPractica = () => {
   const [qCorrecta, setQCorrecta] = useState("A");
   const [qExplicacion, setQExplicacion] = useState("");
   const [qPuntaje, setQPuntaje] = useState(1);
+  const [editandoId, setEditandoId] = useState(null);
 
   useEffect(() => {
     cargar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const puntajeTotal = useMemo(() => {
@@ -76,7 +76,7 @@ const DetalleEvaluacionPractica = () => {
       );
 
       if (response.data.status === "Success") {
-        showSuccessAlert("Éxito", "Evaluación actualizada");
+        showSuccessToast("Evaluación actualizada");
         await cargar();
       } else {
         showErrorAlert(
@@ -90,6 +90,30 @@ const DetalleEvaluacionPractica = () => {
         error.response?.data?.message || "Error al actualizar"
       );
     }
+  };
+
+  const limpiarForm = () => {
+    setQEnunciado("");
+    setQA("");
+    setQB("");
+    setQC("");
+    setQD("");
+    setQCorrecta("A");
+    setQExplicacion("");
+    setQPuntaje(1);
+    setEditandoId(null);
+  };
+
+  const cargarPreguntaParaEditar = (pregunta) => {
+    setEditandoId(pregunta.id);
+    setQEnunciado(pregunta.enunciado || "");
+    setQA(pregunta.alternativa_a || "");
+    setQB(pregunta.alternativa_b || "");
+    setQC(pregunta.alternativa_c || "");
+    setQD(pregunta.alternativa_d || "");
+    setQCorrecta(pregunta.respuesta_correcta || "A");
+    setQExplicacion(pregunta.explicacion || "");
+    setQPuntaje(Number(pregunta.puntaje ?? 1));
   };
 
   const crearPregunta = async (e) => {
@@ -106,32 +130,43 @@ const DetalleEvaluacionPractica = () => {
         puntaje: Number(qPuntaje),
       };
 
-      const response = await axios.post(
-        `/evaluaciones-practicas/${Number(id)}/preguntas`,
-        payload
-      );
-
-      if (response.data.status === "Success") {
-        showSuccessAlert("Éxito", "Pregunta creada");
-        setQEnunciado("");
-        setQA("");
-        setQB("");
-        setQC("");
-        setQD("");
-        setQCorrecta("A");
-        setQExplicacion("");
-        setQPuntaje(1);
-        await cargar();
-      } else {
-        showErrorAlert(
-          "Error",
-          response.data.message || "No se pudo crear la pregunta"
+      if (editandoId !== null) {
+        const response = await axios.put(
+          `/evaluaciones-practicas/preguntas/${Number(editandoId)}`,
+          payload
         );
+
+        if (response.data.status === "Success") {
+          showSuccessToast("Pregunta actualizada");
+          limpiarForm();
+          await cargar();
+        } else {
+          showErrorAlert(
+            "Error",
+            response.data.message || "No se pudo actualizar la pregunta"
+          );
+        }
+      } else {
+        const response = await axios.post(
+          `/evaluaciones-practicas/${Number(id)}/preguntas`,
+          payload
+        );
+
+        if (response.data.status === "Success") {
+          showSuccessToast("Pregunta creada");
+          limpiarForm();
+          await cargar();
+        } else {
+          showErrorAlert(
+            "Error",
+            response.data.message || "No se pudo crear la pregunta"
+          );
+        }
       }
     } catch (error) {
       showErrorAlert(
         "Error",
-        error.response?.data?.message || "Error al crear la pregunta"
+        error.response?.data?.message || "Error al guardar la pregunta"
       );
     }
   };
@@ -143,7 +178,10 @@ const DetalleEvaluacionPractica = () => {
       );
 
       if (response.data.status === "Success") {
-        showSuccessAlert("Éxito", "Pregunta eliminada");
+        showSuccessToast("Pregunta eliminada");
+        if (editandoId === preguntaId) {
+          limpiarForm();
+        }
         await cargar();
       } else {
         showErrorAlert(
@@ -202,12 +240,10 @@ const DetalleEvaluacionPractica = () => {
             ← Volver
           </button>
         </div>
-
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
             Configuración
           </h2>
-
           <form onSubmit={guardarEvaluacion} className="space-y-4">
             <div>
               <label className="block font-semibold text-gray-700 mb-1">
@@ -221,7 +257,6 @@ const DetalleEvaluacionPractica = () => {
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
               />
             </div>
-
             <div>
               <label className="block font-semibold text-gray-700 mb-1">
                 Descripción
@@ -232,7 +267,6 @@ const DetalleEvaluacionPractica = () => {
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
               />
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">
@@ -247,7 +281,6 @@ const DetalleEvaluacionPractica = () => {
                   className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                 />
               </div>
-
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">
                   Estado
@@ -262,7 +295,6 @@ const DetalleEvaluacionPractica = () => {
                 </select>
               </div>
             </div>
-
             <button
               type="submit"
               className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all w-full"
@@ -271,12 +303,10 @@ const DetalleEvaluacionPractica = () => {
             </button>
           </form>
         </div>
-
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
             Preguntas ({preguntas.length}) — Puntaje total: {puntajeTotal}
           </h2>
-
           {preguntas.length === 0 ? (
             <p className="text-gray-500">Aún no hay preguntas.</p>
           ) : (
@@ -310,12 +340,20 @@ const DetalleEvaluacionPractica = () => {
                       </td>
                       <td className="px-4 py-3 text-gray-600">{p.puntaje}</td>
                       <td className="px-4 py-3">
-                        <button
-                          className="text-red-600 hover:text-red-700 font-semibold text-sm"
-                          onClick={() => eliminarPregunta(p.id)}
-                        >
-                          Eliminar
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            className="text-blue-600 hover:text-blue-700 font-semibold text-sm"
+                            onClick={() => cargarPreguntaParaEditar(p)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="text-red-600 hover:text-red-700 font-semibold text-sm"
+                            onClick={() => eliminarPregunta(p.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -324,12 +362,10 @@ const DetalleEvaluacionPractica = () => {
             </div>
           )}
         </div>
-
         <div className="bg-white rounded-2xl shadow-2xl p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
-            Agregar pregunta
+            {editandoId !== null ? "Editar pregunta" : "Agregar pregunta"}
           </h2>
-
           <form onSubmit={crearPregunta} className="space-y-4">
             <div>
               <label className="block font-semibold text-gray-700 mb-1">
@@ -342,7 +378,6 @@ const DetalleEvaluacionPractica = () => {
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
               />
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">
@@ -389,7 +424,6 @@ const DetalleEvaluacionPractica = () => {
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">
@@ -420,7 +454,6 @@ const DetalleEvaluacionPractica = () => {
                 />
               </div>
             </div>
-
             <div>
               <label className="block font-semibold text-gray-700 mb-1">
                 Explicación
@@ -432,13 +465,23 @@ const DetalleEvaluacionPractica = () => {
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
               />
             </div>
-
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all w-full"
-            >
-              Agregar pregunta
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all flex-1"
+              >
+                {editandoId !== null ? "Guardar cambios" : "Agregar pregunta"}
+              </button>
+              {editandoId !== null && (
+                <button
+                  type="button"
+                  onClick={limpiarForm}
+                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
           </form>
         </div>
       </div>

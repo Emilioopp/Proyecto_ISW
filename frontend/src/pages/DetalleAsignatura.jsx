@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { showSuccessAlert, showErrorAlert } from "../helpers/sweetAlert";
+import { showSuccessAlert, showErrorAlert, showSuccessToast } from "../helpers/sweetAlert";
 import axios from "../services/root.service";
 
 const DetalleAsignatura = () => {
@@ -109,7 +109,7 @@ const DetalleAsignatura = () => {
     }
   };
 
-  // --- LÓGICA CREAR TEMA RÁPIDO ---
+  // CREAR TEMA
   const handleCrearTema = async (e) => {
     e.preventDefault();
     if (!nuevoTemaTitulo.trim()) return showErrorAlert("Error", "El nombre del tema es obligatorio");
@@ -177,7 +177,15 @@ const DetalleAsignatura = () => {
         tiempo_minutos: Number(tiempoMinutosPractica),
       });
       if (response.data.status === "Success") {
-        showSuccessAlert("Éxito", "Evaluación práctica creada correctamente");
+        const nueva = response.data.data;
+        const nuevaId = nueva?.id;
+        showSuccessToast("Evaluación práctica creada");
+
+        if (nuevaId) {
+          navigate(`/evaluacion-practica/detalle/${Number(nuevaId)}`);
+          return;
+        }
+
         setTituloPractica("");
         setDescripcionPractica("");
         setTiempoMinutosPractica(10);
@@ -370,11 +378,11 @@ const DetalleAsignatura = () => {
           </div>
         </div>
         <hr className="my-6 border-gray-200" />
-        {/* --- ZONA DE ACCIONES (BOTONES REORGANIZADOS) --- */}
+        {/* BOTONES */}
         {(user?.rol === 'Profesor' || user?.rol === 'Admin') && (
           <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
             
-            {/* BOTÓN IZQUIERDA: CREAR TEMA */}
+            {/* BOTÓN CREAR TEMA */}
             <button
               onClick={() => {
                 setMostrarFormTema(!mostrarFormTema);
@@ -385,7 +393,7 @@ const DetalleAsignatura = () => {
               {mostrarFormTema ? "✖ Cerrar Tema" : "📚 Nuevo Tema"}
             </button>
 
-            {/* BOTÓN DERECHA: CREAR EVALUACIÓN */}
+            {/* BOTÓN CREAR EVALUACIÓN */}
             <button
               onClick={() => {
                 setMostrarFormEvaluacion(!mostrarFormEvaluacion);
@@ -400,7 +408,7 @@ const DetalleAsignatura = () => {
           </div>
         )}
 
-        {/* --- FORMULARIO DE NUEVO TEMA --- */}
+        {/* FORMULARIO DE NUEVO TEMA */}
         {mostrarFormTema && (
           <div className="mb-8 bg-indigo-50 p-6 rounded-xl border border-indigo-200 shadow-inner animate-fade-in-down">
             <h3 className="text-lg font-bold text-indigo-800 mb-3">Agregar Nuevo Tema a la Asignatura</h3>
@@ -419,7 +427,7 @@ const DetalleAsignatura = () => {
           </div>
         )}
 
-        {/* --- FORMULARIO DE NUEVA EVALUACIÓN --- */}
+        {/* FORMULARIO DE NUEVA EVALUACIÓN */}
         {mostrarFormEvaluacion && (
           <div className="mb-8 bg-gray-50 p-6 rounded-xl border border-green-200 shadow-inner">
             <h3 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Detalles de la Evaluación</h3>
@@ -461,7 +469,7 @@ const DetalleAsignatura = () => {
                 <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} className="w-full px-4 py-2 border rounded-lg" placeholder="https://..." />
               </div>
 
-              {/* LISTADO DE TEMAS (CHECKBOXES) */}
+              {/* LISTADO DE TEMAS */}
               <div className="bg-white p-4 border rounded-lg border-gray-300">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Seleccionar Temas a Evaluar:</label>
                 {temasDisponibles.length > 0 ? (
@@ -488,7 +496,7 @@ const DetalleAsignatura = () => {
           </div>
         )}
 
-        {/* NAVEGACIÓN A LISTADO (Tu botón que da 404 por ahora) */}
+        {/* NAVEGACIÓN A LISTADO (En construccion) */}
         <div className="text-center mt-8 pt-6 border-t border-gray-100">
           <button onClick={() => navigate(`/asignaturas/${id}/evaluaciones`)} className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-lg">
             Ver Listado Completo (En construcción)

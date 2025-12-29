@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "../services/root.service";
+import { deleteDataAlert, showErrorAlert, showSuccessToast } from "../helpers/sweetAlert";
 
 const VerEvaluacionesPracticas = () => {
   const { id } = useParams();
@@ -11,7 +12,6 @@ const VerEvaluacionesPracticas = () => {
 
   useEffect(() => {
     cargarEvaluaciones();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const cargarEvaluaciones = async () => {
@@ -30,6 +30,32 @@ const VerEvaluacionesPracticas = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const eliminarEvaluacion = async (evaluacionId) => {
+    deleteDataAlert(async () => {
+      try {
+        const response = await axios.delete(
+          `/evaluaciones-practicas/${Number(evaluacionId)}`
+        );
+
+        if (response.data.status === "Success") {
+          showSuccessToast("Evaluación eliminada");
+          await cargarEvaluaciones();
+          return;
+        }
+
+        showErrorAlert(
+          "Error",
+          response.data.message || "No se pudo eliminar la evaluación práctica"
+        );
+      } catch (error) {
+        showErrorAlert(
+          "Error",
+          error.response?.data?.message || "No se pudo eliminar la evaluación práctica"
+        );
+      }
+    });
   };
 
   return (
@@ -93,14 +119,24 @@ const VerEvaluacionesPracticas = () => {
                         {evaluacion.tiempo_minutos} min
                       </td>
                       <td className="px-4 py-3">
-                        <button
-                          className="bg-blue-100 text-blue-700 hover:bg-blue-200 font-semibold py-1 px-4 rounded-full transition-colors text-sm"
-                          onClick={() =>
-                            navigate(`/evaluacion-practica/detalle/${evaluacion.id}`)
-                          }
-                        >
-                          Gestionar
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 font-semibold py-1 px-4 rounded-full transition-colors text-sm"
+                            onClick={() =>
+                              navigate(
+                                `/evaluacion-practica/detalle/${evaluacion.id}`
+                              )
+                            }
+                          >
+                            Gestionar
+                          </button>
+                          <button
+                            className="bg-red-100 text-red-700 hover:bg-red-200 font-semibold py-1 px-4 rounded-full transition-colors text-sm"
+                            onClick={() => eliminarEvaluacion(evaluacion.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -8,6 +8,7 @@ import {
     crearPreguntaEvaluacionPractica,
     actualizarPreguntaEvaluacionPractica,
     eliminarPreguntaEvaluacionPractica,
+    obtenerEvaluacionPracticaPublicaPorId,
 } from "../services/evaluacionPractica.service.js";
 import { handleError, handleErrorClient, handleSuccess } from "../Handlers/responseHandlers.js";
 
@@ -109,6 +110,28 @@ export async function getEvaluacionPracticaById(req, res) {
         id: Number(id),
         rol,
         userId: Number(userId),
+    });
+
+    return handleSuccess(res, 200, "OK", evaluacion);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+export async function getEvaluacionPracticaPublicaById(req, res) {
+  try {
+    const rol = req.user.rol;
+    const userId = req.user.sub;
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      return handleErrorClient(res, 400, "id inválido");
+    }
+
+    const evaluacion = await obtenerEvaluacionPracticaPublicaPorId({
+      id: Number(id),
+      rol,
+      userId: Number(userId),
     });
 
     return handleSuccess(res, 200, "OK", evaluacion);

@@ -32,25 +32,25 @@ const MisAsignaturasEstudiante = () => {
           <h1 className="text-3xl font-bold text-gray-800">
             📚 Mis Asignaturas
           </h1>
-          <button
-            onClick={() => navigate("/home")}
-            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg"
-          >
-            ← Volver
-          </button>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-2xl p-6">
-          <div className="flex justify-end mb-4">
-            {/* Botón al Historial General */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/estudiante/historial")}
               className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg shadow"
             >
               Ver Historial de Notas
             </button>
+            <button
+              onClick={() => navigate("/home")}
+              className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg"
+            >
+              ← Volver
+            </button>
           </div>
-
+        </div>
+        <div className="bg-white rounded-2xl shadow-2xl p-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+            Asignaturas Inscritas
+          </h2>
           {loading ? (
             <p className="text-center py-4">Cargando cursos...</p>
           ) : asignaturas.length === 0 ? (
