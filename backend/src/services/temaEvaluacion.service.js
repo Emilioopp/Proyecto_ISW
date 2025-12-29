@@ -42,7 +42,6 @@ export async function obtenerTemas() {
   return temas;
 }
 
-// --- NUEVA FUNCIÓN NECESARIA PARA EL FRONTEND ---
 export async function obtenerTemasPorAsignatura(asignaturaId) {
   // Buscamos temas donde la asignatura coincida con el ID
   const temas = await temaRepo().find({
@@ -55,7 +54,6 @@ export async function obtenerTemasPorAsignatura(asignaturaId) {
   });
   return temas;
 }
-// ------------------------------------------------
 
 export async function obtenerTemaPorId(id) {
   const tema = await temaRepo().findOne({

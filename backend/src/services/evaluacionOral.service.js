@@ -14,24 +14,71 @@ const userRepo = AppDataSource.getRepository(User);
 const asignaturaRepo = AppDataSource.getRepository(Asignatura);
 
 export const crearEvaluacionOral = async (data) => {
-  const { asignaturaId, profesor_id, titulo, descripcion } = data;
+  const { asignaturaId, profesor_id, titulo, descripcion, sala, duracion_minutos, material_estudio, temas } = data;
 
-  const asignatura = await asignaturaRepo.findOne({
-    where: { id: asignaturaId },
-  });
+  const asignatura = await asignaturaRepo.findOne({ where: { id: asignaturaId } });
+  if (!asignatura) throw new Error("Asignatura no encontrada");
 
-  if (!asignatura) {
-    throw new Error(`No se encontró una asignatura con id ${asignaturaId}`);
-  }
+  const listaTemas = temas.map(idTema => ({ id: idTema }));
 
   const nuevaEvaluacion = evaluacionRepo.create({
     titulo,
     descripcion,
-    asignatura: asignatura,
+    sala,
+    duracion_minutos,
+    material_estudio,
+    asignatura: { id: asignaturaId },
     profesor: { id: profesor_id },
+    temas: listaTemas
   });
 
   return await evaluacionRepo.save(nuevaEvaluacion);
+};
+
+export const eliminarEvaluacion = async (id) => {
+  try {
+    const evaluacion = await evaluacionRepo.findOne({
+      where: { id: Number(id) }
+    });
+
+    if (!evaluacion) {
+      return [null, "Evaluación no encontrada"];
+    }
+    
+    try {
+        await notaRepo.delete({ evaluacion: { id: Number(id) } });
+    } catch (errNotes) {
+        console.log("No se pudieron borrar notas o no existían: ", errNotes.message);
+    }
+
+    await evaluacionRepo.remove(evaluacion);
+
+    return [evaluacion, null];
+
+  } catch (error) {
+    return [null, error.message]; 
+  }
+};
+
+export const actualizarEvaluacion = async (id, data) => {
+  try {
+    const evaluacion = await EvaluacionOral.findOne({ where: { id } });
+
+    if (!evaluacion) {
+      return [null, "Evaluación no encontrada"];
+    }
+
+    await EvaluacionOral.update(id, data);
+    const evaluacionActualizada = await EvaluacionOral.findOne({
+      where: { id },
+      relations: ["asignatura", "profesor"],
+    });
+
+    return [evaluacionActualizada, null];
+  } catch (error) {
+    console.error("Error al actualizar evaluación:", error);
+    return [null, "Error interno del servidor"];
+  }
 };
 
 export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {

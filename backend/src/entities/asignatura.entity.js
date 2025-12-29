@@ -27,12 +27,6 @@ export const Asignatura = new EntitySchema({
     },
   },
   relations: {
-    evaluaciones_orales: {
-      type: "one-to-many",
-      target: "EvaluacionOral",
-      joinColumn: { name: "EvaluacionOral_id" },
-      onDelete: "CASCADE",
-    },
     profesorAsignaturas: {
       type: "one-to-many",
       target: "ProfesorAsignatura",
@@ -48,9 +42,9 @@ export const Asignatura = new EntitySchema({
       target: "EvaluacionPractica",
       inverseSide: "asignatura",
     },
-    evaluaciones: {
+    evaluacionesOrales: {
       type: "one-to-many",
-      target: "Evaluacion",
+      target: "EvaluacionOral",
       inverseSide: "asignatura",
     },
   },

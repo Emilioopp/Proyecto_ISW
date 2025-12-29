@@ -43,10 +43,15 @@ export const TemaEvaluacion = new EntitySchema({
       },
       cascade: true,
     },
-    evaluaciones: {
+    evaluacionesOrales: {
       type: "many-to-many",
-      target: "Evaluacion",
-      mappedBy: "temas", 
+      target: "EvaluacionOral",
+      mappedBy: "temas",
+    },
+    evaluacionesPracticas: {
+      type: "many-to-many",
+      target: "EvaluacionPractica",
+      mappedBy: "temas",
     },
   },
 });

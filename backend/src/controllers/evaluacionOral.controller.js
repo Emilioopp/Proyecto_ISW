@@ -1,5 +1,5 @@
 import * as evaluacionService from "../services/evaluacionOral.service.js";
-import { handleError, handleSuccess } from "../Handlers/responseHandlers.js";
+import { handleError, handleSuccess, handleErrorServer, handleErrorClient } from "../Handlers/responseHandlers.js";
 
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   const { id } = req.params;
@@ -25,13 +25,58 @@ export const crearEvaluacionOral = async (req, res) => {
   try {
     const profesor_id = req.user.sub;
     const { asignaturaId } = req.params;
-    const data = { ...req.body, profesor_id, asignaturaId };
+   
+   const { temas } = req.body;
+   if (!temas || !Array.isArray(temas) || temas.length === 0) {
+      return handleErrorClient(res, 400, "Se requiere al menos un tema para la evaluación oral");
+   }
+   
+    const data = { ...req.body, profesor_id, asignaturaId};
     const evaluacion = await evaluacionService.crearEvaluacionOral(data);
     handleSuccess(res, 201, "Evaluación oral creada exitosamente", evaluacion);
   } catch (error) {
     handleError(res, error);
   }
 };
+
+export const actualizarEvaluacionController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [evaluacion, error] = await actualizarEvaluacion(id, req.body);
+
+    if (error) return handleErrorClient(res, 404, error);
+
+    handleSuccess(res, 200, "Evaluación actualizada exitosamente", evaluacion);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+};
+
+export const eliminarEvaluacionController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Llamamos al servicio
+    const [evaluacion, error] = await evaluacionService.eliminarEvaluacion(id);
+
+    if (error) {
+        if (typeof handleErrorClient === 'function') {
+            return handleErrorClient(res, 400, error);
+        } else {
+            console.error("ERROR: handleErrorClient no está importado correctamente.");
+            return res.status(400).json({ message: error });
+        }
+    }
+    handleSuccess(res, 200, "Evaluación eliminada exitosamente", evaluacion);
+  } catch (err) {
+    if (typeof handleErrorServer === 'function') {
+        handleErrorServer(res, 500, err.message);
+    } else {
+        res.status(500).json({ message: "Error crítico del servidor", error: err.message });
+    }
+  }
+};
+
 export const registrarNota = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
@@ -53,6 +98,7 @@ export const registrarNota = async (req, res) => {
     handleError(res, error);
   }
 };
+
 export const obtenerNotasPorEvaluacion = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
