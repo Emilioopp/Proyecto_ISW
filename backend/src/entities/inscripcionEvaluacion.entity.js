@@ -51,6 +51,12 @@ export const InscripcionEvaluacion = new EntitySchema({
       joinColumn: { name: "tema_asignado_id" },
       onDelete: "SET NULL",
     },
+    horario_disponible: {
+      type: "many-to-one",
+      target: "HorarioDisponible",
+      joinColumn: { name: "horario_disponible_id" },
+      onDelete: "SET NULL",
+    },
   },
   indices: [
     {

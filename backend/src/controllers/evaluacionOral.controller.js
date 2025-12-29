@@ -4,36 +4,43 @@ import * as inscripcionService from "../services/inscripcionEvaluacion.service.j
 
 export const obtenerHorariosDisponibles = async (req, res) => {
   try {
-    const { evaluacionId } = req.params;
+    const { id } = req.params;
 
     const horarios = await evaluacionService.obtenerHorariosDisponibles(
-      evaluacionId
+      parseInt(id)
     );
 
-    handleSuccess(res, 200, "Horarios disponibles", horarios);
+    handleSuccess(res, 200, horarios);
   } catch (error) {
     handleError(res, error);
   }
 };
 
 
+
 export const inscribirseAEvaluacion = async (req, res) => {
   try {
+    const evaluacionId = parseInt(req.params.id);
+    const horarioId = parseInt(req.params.horarioId);
     const estudianteId = req.user.sub;
-    const { evaluacionId } = req.params;
-    const { horarioId } = req.body;
 
-    const inscripcion = await evaluacionService.inscribirseAEvaluacion(
+    const resultado = await evaluacionService.inscribirseAEvaluacion(
       evaluacionId,
       horarioId,
       estudianteId
     );
 
-    handleSuccess(res, 201, "Inscripción exitosa", inscripcion);
+    handleSuccess(
+      res,
+      201,
+      "Horario reservado correctamente",
+      resultado
+    );
   } catch (error) {
     handleError(res, error);
   }
 };
+
 
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   const { id } = req.params;

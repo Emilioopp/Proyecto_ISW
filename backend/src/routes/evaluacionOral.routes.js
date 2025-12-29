@@ -8,6 +8,8 @@ import {
   actualizarNota,
   actualizarEvaluacionController,
   eliminarEvaluacionController,
+  obtenerHorariosDisponibles,
+  inscribirseAEvaluacion,
 } from "../controllers/evaluacionOral.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { authorizeRoles } from "../middleware/authorization.middleware.js";
@@ -21,6 +23,19 @@ router.get(
   "/:id/evaluaciones-orales",
   authMiddleware,
   obtenerEvaluacionesPorAsignatura
+);
+
+router.get(
+  "/:id/horarios",
+  authMiddleware,
+  obtenerHorariosDisponibles
+);
+
+router.post(
+  "/:id/horarios/:horarioId/inscribirse",
+  authMiddleware,
+  authorizeRoles("Estudiante"),
+  inscribirseAEvaluacion
 );
 
 // Actualizar evaluación (solo profesores)
