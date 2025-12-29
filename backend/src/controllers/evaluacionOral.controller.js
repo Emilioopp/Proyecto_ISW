@@ -1,5 +1,5 @@
 import * as evaluacionService from "../services/evaluacionOral.service.js";
-import { handleError, handleSuccess, handleErrorServer } from "../Handlers/responseHandlers.js";
+import { handleError, handleSuccess, handleErrorServer, handleErrorClient } from "../Handlers/responseHandlers.js";
 
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   const { id } = req.params;
@@ -25,7 +25,13 @@ export const crearEvaluacionOral = async (req, res) => {
   try {
     const profesor_id = req.user.sub;
     const { asignaturaId } = req.params;
-    const data = { ...req.body, profesor_id, asignaturaId };
+   
+   const { temas } = req.body;
+   if (!temas || !Array.isArray(temas) || temas.length === 0) {
+      return handleErrorClient(res, 400, "Se requiere al menos un tema para la evaluación oral");
+   }
+   
+    const data = { ...req.body, profesor_id, asignaturaId};
     const evaluacion = await evaluacionService.crearEvaluacionOral(data);
     handleSuccess(res, 201, "Evaluación oral creada exitosamente", evaluacion);
   } catch (error) {
