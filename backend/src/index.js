@@ -3,6 +3,8 @@ import "dotenv/config";
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { AppDataSource, connectDB } from "./config/configDb.js";
 import { routerApi } from "./routes/index.routes.js";
 import { initialSetup } from "./config/initialSetup.js";
@@ -16,10 +18,12 @@ app.use(cors({
 
 app.use(express.json());
 app.use(morgan("dev"));
-// Ruta principal de bienvenida
-app.get("/", (req, res) => {
-  res.send("¡Bienvenido a mi API REST con TypeORM!");
-});
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Build del frontend (Vite). Ruta esperada: <repo>/frontend/dist
+const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
 
 // Inicializa la conexión a la base de datos
 connectDB()
@@ -30,10 +34,16 @@ connectDB()
     // Carga todas las rutas de la aplicación
     routerApi(app);
 
+    // Sirve frontend estático y fallback SPA (excluye /api)
+    app.use(express.static(frontendDistPath));
+    app.get(/^\/(?!api).*/, (req, res) => {
+      res.sendFile(path.join(frontendDistPath, "index.html"));
+    });
+
     // Levanta el servidor Express
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Servidor iniciado en ${PORT}`);
+      console.log(`Servidor iniciado en http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
