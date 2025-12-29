@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import evaluacionService from "../services/evaluacion";
+import * as evaluacionService from "../services/evaluacion.service";
 
 const DetalleEvaluacion = () => {
   const { id } = useParams(); // id de la evaluación
