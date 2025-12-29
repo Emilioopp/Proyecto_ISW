@@ -79,5 +79,11 @@ export const EvaluacionOral = new EntitySchema({
       },
       cascade: true,
     },
+    horarios_disponibles: {
+      type: "one-to-many",
+      target: "HorarioDisponible",
+      inverseSide: "evaluacion_oral",
+      cascade: true,
+    },
   },
 });

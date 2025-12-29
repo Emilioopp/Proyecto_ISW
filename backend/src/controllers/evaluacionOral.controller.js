@@ -1,5 +1,39 @@
 import * as evaluacionService from "../services/evaluacionOral.service.js";
 import { handleError, handleSuccess, handleErrorServer, handleErrorClient } from "../Handlers/responseHandlers.js";
+import * as inscripcionService from "../services/inscripcionEvaluacion.service.js";
+
+export const obtenerHorariosDisponibles = async (req, res) => {
+  try {
+    const { evaluacionId } = req.params;
+
+    const horarios = await evaluacionService.obtenerHorariosDisponibles(
+      evaluacionId
+    );
+
+    handleSuccess(res, 200, "Horarios disponibles", horarios);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+
+export const inscribirseAEvaluacion = async (req, res) => {
+  try {
+    const estudianteId = req.user.sub;
+    const { evaluacionId } = req.params;
+    const { horarioId } = req.body;
+
+    const inscripcion = await evaluacionService.inscribirseAEvaluacion(
+      evaluacionId,
+      horarioId,
+      estudianteId
+    );
+
+    handleSuccess(res, 201, "Inscripción exitosa", inscripcion);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
 
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   const { id } = req.params;
@@ -25,19 +59,39 @@ export const crearEvaluacionOral = async (req, res) => {
   try {
     const profesor_id = req.user.sub;
     const { asignaturaId } = req.params;
-   
-   const { temas } = req.body;
-   if (!temas || !Array.isArray(temas) || temas.length === 0) {
-      return handleErrorClient(res, 400, "Se requiere al menos un tema para la evaluación oral");
-   }
-   
-    const data = { ...req.body, profesor_id, asignaturaId};
+
+    const { temas, horarios } = req.body;
+
+    if (!temas || !Array.isArray(temas) || temas.length === 0) {
+      return handleErrorClient(
+        res,
+        400,
+        "Se requiere al menos un tema para la evaluación oral"
+      );
+    }
+
+    if (!horarios || !Array.isArray(horarios) || horarios.length === 0) {
+      return handleErrorClient(
+        res,
+        400,
+        "Se requiere al menos un horario disponible"
+      );
+    }
+
+    const data = {
+      ...req.body,
+      profesor_id,
+      asignaturaId,
+    };
+
     const evaluacion = await evaluacionService.crearEvaluacionOral(data);
+
     handleSuccess(res, 201, "Evaluación oral creada exitosamente", evaluacion);
   } catch (error) {
     handleError(res, error);
   }
 };
+
 
 export const actualizarEvaluacionController = async (req, res) => {
   try {

@@ -27,6 +27,10 @@ export const InscripcionEvaluacion = new EntitySchema({
       default: false,
       nullable: true,
     },
+    tema_asignado_id: {
+      type: "int",
+      nullable: true,
+    },
   },
   relations: {
     evaluacion: {
@@ -40,6 +44,11 @@ export const InscripcionEvaluacion = new EntitySchema({
       target: "User",
       joinColumn: { name: "estudiante_id" },
       onDelete: "CASCADE",
+    },
+    tema_asignado: {
+      type: "many-to-one",
+      target: "TemaEvaluacio",
+      joinColumn: { name: "tema_asignado_id" },
     },
   },
   indices: [

@@ -4,6 +4,12 @@ import { NotaEvaluacion } from "../entities/NotaEvaluacion.entity.js";
 import { EstudianteAsignatura } from "../entities/EstudianteAsignatura.entity.js";
 import { User } from "../entities/user.entity.js";
 import { Asignatura } from "../entities/asignatura.entity.js";
+import { HorarioDisponible } from "../entities/horarioDisponible.entity.js";
+import { TemaEvaluacion } from "../entities/temaEvaluacion.entity.js";
+
+
+const horarioRepo = AppDataSource.getRepository(HorarioDisponible);
+const temaRepo = AppDataSource.getRepository(TemaEvaluacion);
 
 const evaluacionRepo = AppDataSource.getRepository(EvaluacionOral);
 const notaRepo = AppDataSource.getRepository(NotaEvaluacion);
@@ -14,12 +20,41 @@ const userRepo = AppDataSource.getRepository(User);
 const asignaturaRepo = AppDataSource.getRepository(Asignatura);
 
 export const crearEvaluacionOral = async (data) => {
-  const { asignaturaId, profesor_id, titulo, descripcion, sala, duracion_minutos, material_estudio, temas } = data;
+  const {
+    asignaturaId,
+    profesor_id,
+    titulo,
+    descripcion,
+    sala,
+    duracion_minutos,
+    material_estudio,
+    temas,
+    horarios,
+  } = data;
 
-  const asignatura = await asignaturaRepo.findOne({ where: { id: asignaturaId } });
-  if (!asignatura) throw new Error("Asignatura no encontrada");
+  // Validaciones base
+  if (!temas || temas.length === 0) {
+    throw new Error("La evaluación debe tener al menos un tema");
+  }
 
-  const listaTemas = temas.map(idTema => ({ id: idTema }));
+  if (!horarios || horarios.length === 0) {
+    throw new Error("Debe definir al menos un horario disponible");
+  }
+
+  const asignatura = await asignaturaRepo.findOne({
+    where: { id: asignaturaId },
+  });
+
+  if (!asignatura) {
+    throw new Error("Asignatura no encontrada");
+  }
+
+  
+  const temasEncontrados = await temaRepo.findByIds(temas);
+
+  if (temasEncontrados.length !== temas.length) {
+    throw new Error("Uno o más temas no existen");
+  }
 
   const nuevaEvaluacion = evaluacionRepo.create({
     titulo,
@@ -29,11 +64,27 @@ export const crearEvaluacionOral = async (data) => {
     material_estudio,
     asignatura: { id: asignaturaId },
     profesor: { id: profesor_id },
-    temas: listaTemas
+    temas: temasEncontrados,
   });
 
-  return await evaluacionRepo.save(nuevaEvaluacion);
+  const evaluacionGuardada = await evaluacionRepo.save(nuevaEvaluacion);
+
+  // Crear horarios disponibles
+  const horariosDisponibles = horarios.map((h) =>
+    horarioRepo.create({
+      fecha: h.fecha,
+      hora_inicio: h.hora_inicio,
+      hora_fin: h.hora_fin,
+      evaluacion_oral: evaluacionGuardada,
+      disponible: true,
+    })
+  );
+
+  await horarioRepo.save(horariosDisponibles);
+
+  return evaluacionGuardada;
 };
+
 
 export const eliminarEvaluacion = async (id) => {
   try {
@@ -79,6 +130,75 @@ export const actualizarEvaluacion = async (id, data) => {
     console.error("Error al actualizar evaluación:", error);
     return [null, "Error interno del servidor"];
   }
+};
+
+export const obtenerHorariosDisponibles = async (evaluacionId) => {
+  const evaluacion = await evaluacionRepo.findOne({
+    where: { id: evaluacionId },
+  });
+
+  if (!evaluacion) {
+    throw new Error("Evaluación oral no encontrada");
+  }
+
+  return await horarioRepo.find({
+    where: {
+      evaluacion_id: evaluacionId,
+      disponible: true,
+    },
+    order: {
+      fecha: "ASC",
+      hora_inicio: "ASC",
+    },
+  });
+};
+
+export const inscribirseAEvaluacion = async (
+  evaluacionId,
+  horarioId,
+  estudianteId
+) => {
+  const horario = await horarioRepo.findOne({
+    where: {
+      id: horarioId,
+      evaluacion_id: evaluacionId,
+      disponible: true,
+    },
+  });
+
+  if (!horario) {
+    throw new Error("Horario no disponible");
+  }
+
+  const evaluacion = await evaluacionRepo.findOne({
+    where: { id: evaluacionId },
+    relations: ["temas"],
+  });
+
+  if (!evaluacion || evaluacion.temas.length === 0) {
+    throw new Error("La evaluación no tiene temas asociados");
+  }
+
+  const temaAsignado = asignarTemaAleatorio(evaluacion.temas);
+
+  const inscripcion = inscripcionRepo.create({
+    evaluacion_id: evaluacionId,
+    estudiante_id: estudianteId,
+    tema_asignado_id: temaAsignado.id,
+    material_asignado: temaAsignado.materialUrl,
+  });
+
+  await inscripcionRepo.save(inscripcion);
+
+  horario.disponible = false;
+  await horarioRepo.save(horario);
+
+  return inscripcion;
+};
+
+export const asignarTemaAleatorio = (temas) => {
+  const indiceAleatorio = Math.floor(Math.random() * temas.length);
+  return temas[indiceAleatorio];
 };
 
 export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
