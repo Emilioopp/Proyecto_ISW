@@ -9,9 +9,16 @@ export const handleSuccess = (res, statusCode, message, data = null) => {
 };
 
 export const handleError = (res, error) => {
-  if (error.name === "ValidationError" || error.statusCode === 400) {
+  const statusCode = Number(error?.statusCode);
+
+  if (error?.name === "ValidationError" || statusCode === 400) {
     return handleErrorClient(res, 400, error.message);
   }
+
+  if (!Number.isNaN(statusCode) && statusCode >= 400 && statusCode < 500) {
+    return handleErrorClient(res, statusCode, error.message);
+  }
+
   return handleErrorServer(res, error);
 };
 
@@ -31,7 +38,10 @@ export const handleErrorClient = (
 export const handleErrorServer = (res, error) => {
   console.error("Server Error:", error);
 
-  res.status(500).json({
+  const statusCode = Number(error?.statusCode);
+  const code = !Number.isNaN(statusCode) && statusCode >= 500 ? statusCode : 500;
+
+  res.status(code).json({
     message: "Error interno del servidor",
     errorDetails: error?.message || error,
     status: "Server error",
