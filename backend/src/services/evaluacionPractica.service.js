@@ -81,8 +81,11 @@ async function assertProfesorPuedeAccederAsignatura({rol, profesorId, asignatura
 
 function assertEsDuenoEvaluacion({rol, userId, evaluacion}) {
   if (rol === "Admin") return;
-  if (Number(evaluacion.profesor_id) !== Number(userId)) {
-    const error = new Error("Acceso denegado: no eres dueño de la evaluación");
+  const profesorId = Number(evaluacion.profesor_id);
+  const userIdNum = Number(userId);
+  console.log(`DEBUG assertEsDuenoEvaluacion: userId=${userId} (${typeof userId} -> num: ${userIdNum}), profesor_id=${evaluacion.profesor_id} (${typeof evaluacion.profesor_id} -> num: ${profesorId}), evaluacion.id=${evaluacion.id}`);
+  if (profesorId !== userIdNum) {
+    const error = new Error(`Acceso denegado: no eres dueño de la evaluación (profesor_id=${profesorId}, tu userId=${userIdNum})`);
     error.statusCode = 403;
     throw error;
   }
