@@ -44,6 +44,27 @@ export const EvaluacionPractica = new EntitySchema({
       length: 255,
       nullable: true,
     },
+
+    // Material de estudio (PDF) asociado a la evaluación
+    material_nombre_original: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    },
+    material_filename: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    },
+    material_mimetype: {
+      type: "varchar",
+      length: 100,
+      nullable: true,
+    },
+    material_size: {
+      type: "int",
+      nullable: true,
+    },
     created_at: {
       type: "timestamp",
       createDate: true,
