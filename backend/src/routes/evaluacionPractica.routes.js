@@ -4,11 +4,13 @@ import { authorizeRoles } from "../middleware/authorization.middleware.js";
 import {
     getIntentosPorEvaluacion,
     postIniciarIntento,
+    getIntentoActivo,
 } from "../controllers/intentoEvaluacion.controller.js";
 import {
     getEvaluacionesPracticas,
     getEvaluacionesPracticasPublicas,
     getEvaluacionPracticaById,
+    getEvaluacionPracticaPublicaById,
     postEvaluacionPractica,
     putEvaluacionPractica,
     deleteEvaluacionPractica,
@@ -21,7 +23,25 @@ const router = express.Router();
 
 router.post("/:id/intentos", authMiddleware, authorizeRoles("Estudiante", "Admin"), postIniciarIntento);
 
+router.get(
+  "/:id/intentos/activo",
+  authMiddleware,
+  authorizeRoles("Estudiante", "Admin"),
+  getIntentoActivo
+);
+
 router.get("/publicas", authMiddleware, authorizeRoles("Estudiante", "Admin"), getEvaluacionesPracticasPublicas);
+
+// Info pública por id para estudiantes
+router.get("/:id/publica", authMiddleware, authorizeRoles("Estudiante", "Admin"), getEvaluacionPracticaPublicaById);
+
+// Historial de intentos por evaluación (Estudiante ve solo los propios; Profesor solo sus evaluaciones; Admin todo)
+router.get(
+  "/:id/intentos",
+  authMiddleware,
+  authorizeRoles("Estudiante", "Profesor", "Admin"),
+  getIntentosPorEvaluacion
+);
 
 router.use(authMiddleware, authorizeRoles("Profesor", "Admin"));
 
@@ -33,8 +53,6 @@ router.route("/:id")
     .get(getEvaluacionPracticaById) //http://localhost:3000/api/evaluaciones-practicas/:id
     .put(putEvaluacionPractica)     //http://localhost:3000/api/evaluaciones-practicas/:id
     .delete(deleteEvaluacionPractica); //http://localhost:3000/api/evaluaciones-practicas/:id
-
-router.get("/:id/intentos", getIntentosPorEvaluacion); //http://localhost:3000/api/evaluaciones-practicas/:id/intentos
 
 router.route("/:id/preguntas")
   .post(postPreguntaEvaluacionPractica); //http://localhost:3000/api/evaluaciones-practicas/:id/preguntas

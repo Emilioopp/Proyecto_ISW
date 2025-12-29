@@ -15,6 +15,11 @@ import Placeholder from "@components/Placeholder";
 import DetalleEvaluacion from "@pages/DetalleEvaluacion";
 import DetalleEvaluacionPractica from "@pages/DetalleEvaluacionPractica";
 import MisEstadisticas from "@pages/MisEstadisticas";
+import ListaEvaluacionesPracticasEstudiante from "@pages/ListaEvaluacionesPracticasEstudiante";
+import IniciarEvaluacionPractica from "@pages/IniciarEvaluacionPractica";
+import IntentoEvaluacionPractica from "@pages/IntentoEvaluacionPractica";
+import ResultadoIntentoPractica from "@pages/ResultadoIntentoPractica";
+import PracticasRealizadasEstudiante from "@pages/PracticasRealizadasEstudiante";
 import MisAsignaturasEstudiante from "@pages/MisAsignaturasEstudiante";
 import NotasEstudiante from "@pages/NotasEstudiante";
 import AsignaturaEstudiante from "@pages/AsignaturaEstudiante";
@@ -80,7 +85,39 @@ const router = createBrowserRouter([
         path: "/estudiante/asignaturas/:id/practicas",
         element: (
           <ProtectedRoute>
-            <Placeholder titulo="Evaluaciones Prácticas" icono="📝" />
+            <ListaEvaluacionesPracticasEstudiante />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/estudiante/asignaturas/:id/practicas-realizadas",
+        element: (
+          <ProtectedRoute>
+            <PracticasRealizadasEstudiante />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/estudiante/evaluacion-practica/:id/iniciar",
+        element: (
+          <ProtectedRoute>
+            <IniciarEvaluacionPractica />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/estudiante/intento-practica/:intentoId",
+        element: (
+          <ProtectedRoute>
+            <IntentoEvaluacionPractica />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/estudiante/resultado-practica/:intentoId",
+        element: (
+          <ProtectedRoute>
+            <ResultadoIntentoPractica />
           </ProtectedRoute>
         ),
       },

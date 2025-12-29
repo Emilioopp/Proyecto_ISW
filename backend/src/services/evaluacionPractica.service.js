@@ -101,11 +101,7 @@ export async function listarEvaluacionesPracticasPorAsignatura({asignaturaId, ro
   });
 }
 
-export async function listarEvaluacionesPracticasPublicasPorAsignatura({
-  asignaturaId,
-  rol,
-  userId,
-}) {
+export async function listarEvaluacionesPracticasPublicasPorAsignatura({asignaturaId,rol,userId,}) {
   await assertAsignaturaExiste(asignaturaId);
 
   // Admin puede listar sin restriccion
@@ -146,6 +142,48 @@ export async function obtenerEvaluacionPracticaPorId({id, rol, userId}) {
   });
 
   return { ...evaluacion, preguntas };
+}
+
+export async function obtenerEvaluacionPracticaPublicaPorId({ id, rol, userId }) {
+  const evaluacion = await evaluacionPracticaRepo.findOne({
+    where: { id: Number(id), estado: "publica" },
+  });
+
+  if (!evaluacion) {
+    const error = new Error("Evaluación práctica no encontrada o no pública");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Admin puede consultar sin restricción, estudiante debe estar inscrito
+  if (rol !== "Admin") {
+    await assertEstudianteInscrito({
+      estudianteId: userId,
+      asignaturaId: evaluacion.asignatura_id,
+    });
+  }
+
+  const preguntas = await preguntaRepo.find({
+    where: { evaluacion_id: Number(id) },
+    select: ["puntaje"],
+  });
+
+  const cantidad_preguntas = preguntas.length;
+  const puntaje_total = preguntas.reduce(
+    (acc, p) => acc + Number(p.puntaje ?? 0),
+    0
+  );
+
+  return {
+    id: evaluacion.id,
+    asignatura_id: evaluacion.asignatura_id,
+    titulo: evaluacion.titulo,
+    descripcion: evaluacion.descripcion,
+    tiempo_minutos: evaluacion.tiempo_minutos,
+    estado: evaluacion.estado,
+    cantidad_preguntas,
+    puntaje_total,
+  };
 }
 
 async function getSiguienteOrdenPregunta(evaluacionId) {

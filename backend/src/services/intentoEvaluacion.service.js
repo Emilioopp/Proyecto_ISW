@@ -45,7 +45,7 @@ function sanitizeUser(user) {
   return rest;
 }
 
-export async function iniciarIntentoEvaluacionPractica({evaluacionId, estudianteId, rol}) {
+export async function iniciarIntentoEvaluacionPractica({evaluacionId, estudianteId, rol, forceNew = false}) {
   const evaluacion = await evaluacionRepo.findOne({
     where: { id: Number(evaluacionId) },
   });
@@ -69,7 +69,7 @@ export async function iniciarIntentoEvaluacionPractica({evaluacionId, estudiante
 
   const puntaje_total = preguntas.reduce((acc, p) => acc + Number(p.puntaje ?? 0), 0);
 
-  // Si hay un intento activo, se reutiliza
+  // Si hay un intento activo se reutiliza
   let intentoActivo = await intentoRepo.findOne({
     where: {
         evaluacion_id: Number(evaluacionId),
@@ -88,6 +88,15 @@ export async function iniciarIntentoEvaluacionPractica({evaluacionId, estudiante
 
     if (Number.isFinite(tiempoMaxMs) && usadoMs > tiempoMaxMs) {
       // Finaliza automaticamente el intento expirado
+      intentoActivo.finalizado = true;
+      intentoActivo.fecha_finalizacion = now;
+      intentoActivo.tiempo_usado_segundos = Math.floor(usadoMs / 1000);
+      intentoActivo.puntaje_obtenido = 0;
+      intentoActivo.puntaje_total = puntaje_total;
+      await intentoRepo.save(intentoActivo);
+      intentoActivo = null;
+    } else if (forceNew) {
+      // Finaliza el intento activo y crea uno nuevo
       intentoActivo.finalizado = true;
       intentoActivo.fecha_finalizacion = now;
       intentoActivo.tiempo_usado_segundos = Math.floor(usadoMs / 1000);
@@ -170,9 +179,10 @@ export async function submitIntentoEvaluacion({intentoId, estudianteId, rol, res
   const tiempoMaxMs = Number(evaluacion.tiempo_minutos) * 60 * 1000;
   const usadoMs = now.getTime() - inicio.getTime();
 
-  if (Number.isFinite(tiempoMaxMs) && usadoMs > tiempoMaxMs) {
-    throw errorWithStatus("Tiempo de la evaluación expirado", 400);
-  }
+  // Si el tiempo expira finaliza el intento
+  const tiempoUsadoMs = Number.isFinite(tiempoMaxMs)
+    ? Math.min(usadoMs, tiempoMaxMs)
+    : usadoMs;
 
   const preguntas = await preguntaRepo.find({
     where: { evaluacion_id: Number(evaluacion.id) },
@@ -248,7 +258,10 @@ export async function submitIntentoEvaluacion({intentoId, estudianteId, rol, res
 
     intentoActual.puntaje_obtenido = Number(puntaje_obtenido);
     intentoActual.puntaje_total = Number(puntaje_total);
-    intentoActual.tiempo_usado_segundos = Math.max(0, Math.floor(usadoMs / 1000));
+    intentoActual.tiempo_usado_segundos = Math.max(
+      0,
+      Math.floor(tiempoUsadoMs / 1000)
+    );
     intentoActual.finalizado = true;
     intentoActual.fecha_finalizacion = now;
 
@@ -261,7 +274,7 @@ export async function submitIntentoEvaluacion({intentoId, estudianteId, rol, res
     estudiante_id: intento.estudiante_id,
     puntaje_obtenido,
     puntaje_total,
-    tiempo_usado_segundos: Math.max(0, Math.floor(usadoMs / 1000)),
+    tiempo_usado_segundos: Math.max(0, Math.floor(tiempoUsadoMs / 1000)),
     finalizado: true,
     detalle: detalle.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0)),
   };
@@ -292,10 +305,17 @@ export async function obtenerIntentoById({intentoId, rol, userId}) {
     order: { id: "ASC" },
   });
 
+  // Obtener todas las preguntas de la evaluación en orden
+  const preguntas = await preguntaRepo.find({
+    where: { evaluacion_id: Number(intento.evaluacion_id) },
+    order: { orden: "ASC", id: "ASC" },
+  });
+
   return {
     ...intento,
     estudiante: sanitizeUser(intento.estudiante),
     respuestas,
+    preguntas,
   };
 }
 
@@ -310,9 +330,13 @@ export async function listarIntentosPorEvaluacion({ evaluacionId, rol, userId })
     throw errorWithStatus("Acceso denegado", 403);
   }
 
-  // Admin puede ver todo
+  const where = { evaluacion_id: Number(evaluacionId) };
+  if (rol === "Estudiante") {
+    where.estudiante_id = Number(userId);
+  }
+
   const intentos = await intentoRepo.find({
-    where: { evaluacion_id: Number(evaluacionId) },
+    where,
     relations: ["estudiante"],
     order: { id: "DESC" },
   });
@@ -320,5 +344,101 @@ export async function listarIntentosPorEvaluacion({ evaluacionId, rol, userId })
   return intentos.map((i) => ({
     ...i,
     estudiante: sanitizeUser(i.estudiante),
+  }));
+}
+
+export async function obtenerIntentoActivoEvaluacionPractica({evaluacionId, estudianteId, rol}) {
+  const evaluacion = await evaluacionRepo.findOne({
+    where: { id: Number(evaluacionId) },
+  });
+
+  if (!evaluacion) throw errorWithStatus("Evaluación práctica no encontrada", 404);
+
+  if (rol !== "Admin" && evaluacion.estado !== "publica") {
+    throw errorWithStatus("La evaluación no está disponible", 403);
+  }
+
+  await assertEstudianteInscrito({
+    estudianteId,
+    asignaturaId: evaluacion.asignatura_id,
+  });
+
+  const preguntas = await preguntaRepo.find({
+    where: { evaluacion_id: Number(evaluacionId) },
+    select: ["puntaje"],
+  });
+  const puntaje_total = preguntas.reduce((acc, p) => acc + Number(p.puntaje ?? 0), 0);
+
+  let intentoActivo = await intentoRepo.findOne({
+    where: {
+      evaluacion_id: Number(evaluacionId),
+      estudiante_id: Number(estudianteId),
+      finalizado: false,
+    },
+    order: { id: "DESC" },
+  });
+
+  if (intentoActivo) {
+    const now = new Date();
+    const inicio = new Date(intentoActivo.fecha_inicio);
+    const tiempoMaxMs = Number(evaluacion.tiempo_minutos) * 60 * 1000;
+    const usadoMs = now.getTime() - inicio.getTime();
+
+    // Si expiro, finaliza y no hay intentos activos
+    if (Number.isFinite(tiempoMaxMs) && usadoMs > tiempoMaxMs) {
+      intentoActivo.finalizado = true;
+      intentoActivo.fecha_finalizacion = now;
+      intentoActivo.tiempo_usado_segundos = Math.floor(usadoMs / 1000);
+      intentoActivo.puntaje_obtenido = 0;
+      intentoActivo.puntaje_total = puntaje_total;
+      await intentoRepo.save(intentoActivo);
+      intentoActivo = null;
+    } else if (intentoActivo.puntaje_total !== puntaje_total) {
+      intentoActivo.puntaje_total = puntaje_total;
+      await intentoRepo.save(intentoActivo);
+    }
+  }
+
+  return intentoActivo;
+}
+
+export async function listarMisIntentosFinalizados({estudianteId,rol,asignaturaId,evaluacionId,}) {
+  if (rol !== "Estudiante" && rol !== "Admin") {
+    throw errorWithStatus("Acceso denegado", 403);
+  }
+
+  const qb = intentoRepo
+    .createQueryBuilder("intento")
+    .leftJoinAndSelect("intento.evaluacion", "evaluacion")
+    .where("intento.finalizado = :finalizado", { finalizado: true })
+    .andWhere("intento.estudiante_id = :estudianteId", {
+      estudianteId: Number(estudianteId),
+    })
+    .orderBy("intento.fecha_finalizacion", "DESC")
+    .addOrderBy("intento.id", "DESC");
+
+  if (asignaturaId !== undefined && asignaturaId !== null) {
+    qb.andWhere("evaluacion.asignatura_id = :asignaturaId", {
+      asignaturaId: Number(asignaturaId),
+    });
+  }
+
+  if (evaluacionId !== undefined && evaluacionId !== null) {
+    qb.andWhere("evaluacion.id = :evaluacionId", {
+      evaluacionId: Number(evaluacionId),
+    });
+  }
+
+  const intentos = await qb.getMany();
+
+  return intentos.map((i) => ({
+    ...i,
+    evaluacion: i.evaluacion
+      ? {
+          id: i.evaluacion.id,
+          titulo: i.evaluacion.titulo,
+          asignatura_id: i.evaluacion.asignatura_id,
+        }
+      : null,
   }));
 }

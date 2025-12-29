@@ -68,6 +68,18 @@ export function showSuccessAlert(title, text) {
   });
 }
 
+export function showSuccessToast(message) {
+  return Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'success',
+    title: message,
+    showConfirmButton: false,
+    timer: 1800,
+    timerProgressBar: true,
+  });
+}
+
 export function deleteDataAlert(onConfirm) {
   Swal.fire({
     title: '¿Estás seguro?',
