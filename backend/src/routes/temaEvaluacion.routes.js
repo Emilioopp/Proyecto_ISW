@@ -24,6 +24,6 @@ router.get("/asignatura/:asignaturaId", obtenerTemasPorAsignatura);
 // Operaciones por ID de Tema
 router.get("/:id", obtenerTemaPorId);
 router.put("/:id", authorizeRoles("Admin", "Profesor"), actualizarTema);
-router.delete("/:id", authorizeRoles("Admin"), eliminarTema);
+router.delete("/:id", authorizeRoles("Admin", "Profesor"), eliminarTema);
 
 export default router;
