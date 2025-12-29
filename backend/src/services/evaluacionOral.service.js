@@ -70,23 +70,27 @@ export const crearEvaluacionOral = async (data) => {
 
   const evaluacionGuardada = await evaluacionRepo.save(nuevaEvaluacion);
 
-  const evaluacionCompleta = await evaluacionRepo.findOne({
-  where: { id: evaluacionGuardada.id },
-  relations: ["horariosDisponibles", "temas"],
-  });
-
-  // Crear horarios disponibles
-  const horariosDisponibles = horarios.map((h) =>
+  const listaHorarios = horarios.map((h) =>
     horarioRepo.create({
       fecha: h.fecha,
       hora_inicio: h.hora_inicio,
       hora_fin: h.hora_fin,
-      evaluacion_oral: evaluacionGuardada,
+      evaluacion_oral: evaluacionGuardada, // Vinculamos con la evaluación recién creada
       disponible: true,
     })
   );
 
-  await horarioRepo.save(horariosDisponibles);
+  await horarioRepo.save(listaHorarios);
+
+  const evaluacionCompleta = await evaluacionRepo.findOne({
+    where: { id: evaluacionGuardada.id },
+    relations: ["temas", "asignatura", "profesor"], 
+  });
+
+  
+  if (evaluacionCompleta) {
+      evaluacionCompleta.horarios = listaHorarios;
+  }
 
   return evaluacionCompleta;
 };

@@ -15,7 +15,7 @@ const DetalleAsignatura = () => {
   
   // ESTADOS DE VISIBILIDAD DE FORMULARIOS
   const [mostrarFormEvaluacion, setMostrarFormEvaluacion] = useState(false);
-  const [mostrarFormTema, setMostrarFormTema] = useState(false); // NUEVO
+  const [mostrarFormTema, setMostrarFormTema] = useState(false); 
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   // ESTADOS FORMULARIO EVALUACIÓN
@@ -44,10 +44,10 @@ const DetalleAsignatura = () => {
   }, [id]);
 
   const agregarHorario = () => {
-  setHorarios([
-    ...horarios,
-    { fecha: "", hora_inicio: "", hora_fin: "" },
-  ]);
+    setHorarios([
+      ...horarios,
+      { fecha: "", horaInicio: "", horaFin: "" },
+    ]);
   };
 
   const actualizarHorario = (index, campo, valor) => {
@@ -162,24 +162,49 @@ const DetalleAsignatura = () => {
 
   const handleCrearEvaluacion = async (e) => {
     e.preventDefault();
-    // Validaciones
-  
+
     if (temasSeleccionados.length === 0) return showErrorAlert("Error", "Selecciona al menos un tema.");
 
+    //Validamos que los horarios tengan datos
+    const horariosValidos = horarios.every(h => h.fecha && h.horaInicio && h.horaFin);
+    if (!horariosValidos) return showErrorAlert("Error", "Completa todos los campos de los horarios.");
+
     try {
+      const horariosFormateados = horarios.map(h => ({
+        fecha: h.fecha,
+        hora_inicio: h.horaInicio, // Backend espera hora_inicio
+        hora_fin: h.horaFin        // Backend espera hora_fin
+      }));
+
       const payload = {
-        titulo, descripcion, sala, material_estudio: material, temas: temasSeleccionados, horariosDisponibles: horarios
+        titulo, 
+        descripcion, 
+        sala, 
+        material_estudio: material, 
+        temas: temasSeleccionados, 
+        horarios: horariosFormateados 
       };
 
+      console.log("Enviando payload:", payload); // Para depurar si falla
+
+    
       const response = await axios.post(`/evaluaciones-orales/${id}`, payload);
       
       if (response.data.status === "Success") {
         showSuccessAlert("Éxito", "Evaluación creada correctamente");
-        setTitulo(""); setDescripcion(""); setSala(""); setMaterial("");
+        
+        // Resetear formulario
+        setTitulo(""); 
+        setDescripcion(""); 
+        setSala(""); 
+        setMaterial("");
         setTemasSeleccionados([]);
+        // Reiniciamos con los nombres camelCase para el formulario
+        setHorarios([{ fecha: "", horaInicio: "", horaFin: "" }]); 
         setMostrarFormEvaluacion(false);
       }
     } catch (error) {
+      console.error(error);
       const msg = error.response?.data?.message || "Error al crear evaluación";
       showErrorAlert("Error", msg);
     }
@@ -284,7 +309,7 @@ const DetalleAsignatura = () => {
           </div>
         )}
         {/* ======================================================= */}
-        {/* BLOQUE CORREGIDO: EVALUACIONES ORALES */}
+        {/*  EVALUACIONES ORALES */}
         {/* ======================================================= */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -300,7 +325,6 @@ const DetalleAsignatura = () => {
             </button>
           </div>
 
-          {/* AQUI ESTÁ EL CAMBIO: El formulario ahora vive DENTRO de este div */}
           {mostrarFormEvaluacion && (
             <div className="mt-4 bg-gray-50 p-6 rounded-xl border border-green-200 shadow-inner animate-fade-in-down">
               <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b">
@@ -372,46 +396,62 @@ const DetalleAsignatura = () => {
                     🕒 Horarios Disponibles
                   </h3>
                   {horarios.map((horario, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-end">
-                      <div>
-                        <span className="text-xs text-gray-500">Fecha</span>
-                        <input
-                          type="date"
-                          value={horario.fecha}
-                          onChange={(e) => actualizarHorario(index, "fecha", e.target.value)}
-                          required
-                          className="w-full border rounded px-2 py-1 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <span className="text-xs text-gray-500">Inicio</span>
-                        <input
-                          type="time"
-                          value={horario.hora_inicio}
-                          onChange={(e) => actualizarHorario(index, "hora_inicio", e.target.value)}
-                          required
-                          className="w-full border rounded px-2 py-1 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <span className="text-xs text-gray-500">Fin</span>
-                        <input
-                          type="time"
-                          value={horario.hora_fin}
-                          onChange={(e) => actualizarHorario(index, "hora_fin", e.target.value)}
-                          required
-                          className="w-full border rounded px-2 py-1 text-sm"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => eliminarHorario(index)}
-                        className="bg-red-100 text-red-600 hover:bg-red-200 px-3 py-1 rounded h-8"
-                      >
-                        🗑️
-                      </button>
+                  <div
+                    key={index}
+                    className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3 items-end"
+                  >
+                    <div>
+                      <span className="text-xs text-gray-500 font-semibold">Fecha</span>
+                      <input
+                        type="date"
+                        value={horario.fecha}
+                        onChange={(e) =>
+                          actualizarHorario(index, "fecha", e.target.value)
+                        }
+                        required
+                        className="w-full border rounded px-3 py-2 text-sm"
+                      />
                     </div>
-                  ))}
+
+                    <div>
+                      <span className="text-xs text-gray-500 font-semibold">
+                        Hora Inicio
+                      </span>
+                      <input
+                        type="time"
+                        value={horario.horaInicio} // <--- CAMBIO AQUÍ
+                        onChange={(e) =>
+                          actualizarHorario(index, "horaInicio", e.target.value) // <--- CAMBIO AQUÍ
+                        }
+                        required
+                        className="w-full border rounded px-3 py-2 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <span className="text-xs text-gray-500 font-semibold">
+                        Hora Fin
+                      </span>
+                      <input
+                        type="time"
+                        value={horario.horaFin} // <--- CAMBIO AQUÍ
+                        onChange={(e) =>
+                          actualizarHorario(index, "horaFin", e.target.value) // <--- CAMBIO AQUÍ
+                        }
+                        required
+                        className="w-full border rounded px-3 py-2 text-sm"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => eliminarHorario(index)}
+                      className="bg-red-100 text-red-600 hover:bg-red-200 px-3 py-2 rounded h-10 flex items-center justify-center"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                ))}
                   <button
                     type="button"
                     onClick={agregarHorario}
