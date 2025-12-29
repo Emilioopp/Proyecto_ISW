@@ -25,8 +25,9 @@ const DetalleAsignatura = () => {
   const [tituloPractica, setTituloPractica] = useState("");
   const [descripcionPractica, setDescripcionPractica] = useState("");
   const [tiempoMinutosPractica, setTiempoMinutosPractica] = useState(10);
-  const [tipo, setTipo] = useState("oral");
-  const [fechaHora, setFechaHora] = useState("");
+  const [horarios, setHorarios] = useState([
+    { fecha: "", hora_inicio: "", hora_fin: "" },
+  ]);
   const [sala, setSala] = useState("");
   const [material, setMaterial] = useState("");
   
@@ -41,6 +42,23 @@ const DetalleAsignatura = () => {
     cargarAsignatura();
     cargarTemasAsignatura();
   }, [id]);
+
+  const agregarHorario = () => {
+  setHorarios([
+    ...horarios,
+    { fecha: "", hora_inicio: "", hora_fin: "" },
+  ]);
+  };
+
+  const actualizarHorario = (index, campo, valor) => {
+  const nuevosHorarios = [...horarios];
+  nuevosHorarios[index][campo] = valor;
+  setHorarios(nuevosHorarios);
+  };
+
+  const eliminarHorario = (index) => {
+  setHorarios(horarios.filter((_, i) => i !== index));
+  };
 
   const cargarAsignatura = async () => {
     try {
@@ -145,19 +163,19 @@ const DetalleAsignatura = () => {
   const handleCrearEvaluacion = async (e) => {
     e.preventDefault();
     // Validaciones
-    if (!fechaHora || new Date(fechaHora) <= new Date()) return showErrorAlert("Error", "La fecha debe ser futura.");
+  
     if (temasSeleccionados.length === 0) return showErrorAlert("Error", "Selecciona al menos un tema.");
 
     try {
       const payload = {
-        titulo, descripcion, tipo, fecha_hora: fechaHora, sala, material_estudio: material, temasIds: temasSeleccionados
+        titulo, descripcion, sala, material_estudio: material, temas: temasSeleccionados, horariosDisponibles: horarios
       };
 
-      const response = await axios.post(`/evaluaciones/${id}`, payload);
+      const response = await axios.post(`/evaluaciones-orales/${id}`, payload);
       
       if (response.data.status === "Success") {
         showSuccessAlert("Éxito", "Evaluación creada correctamente");
-        setTitulo(""); setDescripcion(""); setTipo("oral"); setFechaHora(""); setSala(""); setMaterial("");
+        setTitulo(""); setDescripcion(""); setSala(""); setMaterial("");
         setTemasSeleccionados([]);
         setMostrarFormEvaluacion(false);
       }
@@ -210,16 +228,34 @@ const DetalleAsignatura = () => {
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6">    
         {/* HEADER */}
         <div className="flex justify-between items-center mb-6 border-b pb-4 border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-800">{asignatura.nombre} ({asignatura.codigo})</h1>
-          <button
-            onClick={() =>
-              navigate(user?.rol === "Profesor" ? "/mis-asignaturas" : "/asignaturas")
-            }
-            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg shadow-md"
-          >
-            ← Volver
-          </button>
-        </div>
+  <h1 className="text-3xl font-bold text-gray-800">
+    {asignatura.nombre} ({asignatura.codigo})
+  </h1>
+
+  <div className="flex gap-3">
+    {(user?.rol === "Profesor" || user?.rol === "Admin") && (
+      <button
+        onClick={() => {
+          setMostrarFormTema(!mostrarFormTema);
+          setMostrarFormEvaluacion(false);
+        }}
+        className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+      >
+        📚 Nuevo Tema
+      </button>
+    )}
+
+     <button
+        onClick={() =>
+          navigate(user?.rol === "Profesor" ? "/mis-asignaturas" : "/asignaturas")
+        }
+        className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg shadow-md"
+      >
+        ← Volver
+      </button>
+    </div>
+  </div>
+
         {/* Asignar profesor (solo Admin) */}
         {user?.rol === 'Admin' && (
           <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
@@ -247,55 +283,182 @@ const DetalleAsignatura = () => {
             </div>
           </div>
         )}
-        {/* Evaluaciones Orales */}
+        {/* ======================================================= */}
+        {/* BLOQUE CORREGIDO: EVALUACIONES ORALES */}
+        {/* ======================================================= */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <h2 className="text-xl font-bold">Evaluaciones Orales</h2>
             <button
-              onClick={() => setMostrarFormulario(!mostrarFormulario)}
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-all shadow-md"
+              onClick={() => {
+                setMostrarFormEvaluacion(!mostrarFormEvaluacion);
+                setMostrarFormTema(false);
+              }}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md"
             >
-              {mostrarFormulario ? "✖ Cancelar" : "➕ Crear Evaluación Oral"}
+              {mostrarFormEvaluacion ? "✖ Cancelar" : "➕ Crear Evaluación Oral"}
             </button>
           </div>
-          {mostrarFormulario && (
-            <form
-              onSubmit={handleCrearEvaluacion}
-              className="mt-4 space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200"
-            >
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">
-                  Título
-                </label>
-                <input
-                  type="text"
-                  value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                  placeholder="Ej: Examen Oral 1"
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">
-                  Descripción
-                </label>
-                <textarea
-                  value={descripcion}
-                  onChange={(e) => setDescripcion(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                  placeholder="Breve descripción de la evaluación"
-                />
-              </div>
-              <button
-                type="submit"
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all w-full"
-              >
-                Guardar Evaluación
-              </button>
-            </form>
+
+          {/* AQUI ESTÁ EL CAMBIO: El formulario ahora vive DENTRO de este div */}
+          {mostrarFormEvaluacion && (
+            <div className="mt-4 bg-gray-50 p-6 rounded-xl border border-green-200 shadow-inner animate-fade-in-down">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b">
+                Nueva Evaluación Oral
+              </h3>
+              
+              <form onSubmit={handleCrearEvaluacion} className="space-y-4">
+                
+                {/* Título (Ocupa todo el ancho ahora que no hay Tipo) */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Título
+                  </label>
+                  <input
+                    type="text"
+                    value={titulo}
+                    onChange={(e) => setTitulo(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Ej: Certamen 1"
+                  />
+                </div>
+
+                {/* Sala y Material */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Sala / Lugar
+                    </label>
+                    <input
+                      type="text"
+                      value={sala}
+                      onChange={(e) => setSala(e.target.value)}
+                      required
+                      placeholder="Ej: Lab 3"
+                      className="w-full px-4 py-2 border rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Link Material (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={material}
+                      onChange={(e) => setMaterial(e.target.value)}
+                      className="w-full px-4 py-2 border rounded-lg"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Descripción
+                  </label>
+                  <textarea
+                    value={descripcion}
+                    onChange={(e) => setDescripcion(e.target.value)}
+                    className="w-full px-4 py-2 border rounded-lg"
+                    rows="2"
+                    placeholder="Descripción breve..."
+                  />
+                </div>
+
+                {/* HORARIOS */}
+                <div className="mt-6 border-t pt-4">
+                  <h3 className="text-sm font-bold text-gray-700 mb-2">
+                    🕒 Horarios Disponibles
+                  </h3>
+                  {horarios.map((horario, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2 items-end">
+                      <div>
+                        <span className="text-xs text-gray-500">Fecha</span>
+                        <input
+                          type="date"
+                          value={horario.fecha}
+                          onChange={(e) => actualizarHorario(index, "fecha", e.target.value)}
+                          required
+                          className="w-full border rounded px-2 py-1 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500">Inicio</span>
+                        <input
+                          type="time"
+                          value={horario.hora_inicio}
+                          onChange={(e) => actualizarHorario(index, "hora_inicio", e.target.value)}
+                          required
+                          className="w-full border rounded px-2 py-1 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500">Fin</span>
+                        <input
+                          type="time"
+                          value={horario.hora_fin}
+                          onChange={(e) => actualizarHorario(index, "hora_fin", e.target.value)}
+                          required
+                          className="w-full border rounded px-2 py-1 text-sm"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => eliminarHorario(index)}
+                        className="bg-red-100 text-red-600 hover:bg-red-200 px-3 py-1 rounded h-8"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={agregarHorario}
+                    className="mt-1 text-sm text-blue-600 hover:text-blue-800 font-semibold"
+                  >
+                    + Agregar otro horario
+                  </button>
+                </div>
+
+                {/* TEMAS */}
+                <div className="bg-white p-4 border rounded-lg border-gray-200 mt-4">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Seleccionar Temas (Obligatorio):
+                  </label>
+                  {temasDisponibles.length > 0 ? (
+                    <div className="max-h-32 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {temasDisponibles.map((tema) => (
+                        <div key={tema.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`tema-${tema.id}`}
+                            checked={temasSeleccionados.includes(tema.id)}
+                            onChange={() => handleToggleTema(tema.id)}
+                            className="w-4 h-4 text-purple-600 rounded cursor-pointer"
+                          />
+                          <label htmlFor={`tema-${tema.id}`} className="text-sm text-gray-600 cursor-pointer select-none">
+                            {tema.titulo}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-yellow-600">⚠️ No hay temas creados.</p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg mt-4 transition"
+                >
+                  💾 Guardar Evaluación Oral
+                </button>
+              </form>
+            </div>
           )}
+
+          {/* Botón ver listado */}
           <div className="mt-4">
             <button
               onClick={() => navigate(`/asignaturas/${id}/evaluaciones`)}
@@ -381,30 +544,6 @@ const DetalleAsignatura = () => {
         {/* BOTONES */}
         {(user?.rol === 'Profesor' || user?.rol === 'Admin') && (
           <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
-            
-            {/* BOTÓN CREAR TEMA */}
-            <button
-              onClick={() => {
-                setMostrarFormTema(!mostrarFormTema);
-                setMostrarFormEvaluacion(false); // Cierra el otro form para no saturar
-              }}
-              className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all"
-            >
-              {mostrarFormTema ? "✖ Cerrar Tema" : "📚 Nuevo Tema"}
-            </button>
-
-            {/* BOTÓN CREAR EVALUACIÓN */}
-            <button
-              onClick={() => {
-                setMostrarFormEvaluacion(!mostrarFormEvaluacion);
-                setMostrarFormTema(false); // Cierra el otro form
-              }}
-              className={`font-bold py-3 px-6 rounded-lg shadow-md text-white transition-all ${
-                mostrarFormEvaluacion ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700"
-              }`}
-            >
-              {mostrarFormEvaluacion ? "✖ Cancelar Evaluación" : "📝 Crear Evaluación"}
-            </button>
           </div>
         )}
 
@@ -427,79 +566,10 @@ const DetalleAsignatura = () => {
           </div>
         )}
 
-        {/* FORMULARIO DE NUEVA EVALUACIÓN */}
-        {mostrarFormEvaluacion && (
-          <div className="mb-8 bg-gray-50 p-6 rounded-xl border border-green-200 shadow-inner">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Detalles de la Evaluación</h3>
-            <form onSubmit={handleCrearEvaluacion} className="space-y-4">
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">Título</label>
-                  <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Ej: Certamen 1" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">Tipo</label>
-                  <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="w-full px-4 py-2 border rounded-lg bg-white">
-                    <option value="oral">Oral</option>
-                    <option value="presencial">Presencial</option>
-                    <option value="entregable">Entregable</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">Fecha y Hora</label>
-                  <input type="datetime-local" value={fechaHora} onChange={(e) => setFechaHora(e.target.value)} required className="w-full px-4 py-2 border rounded-lg" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">Sala / Lugar</label>
-                  <input type="text" value={sala} onChange={(e) => setSala(e.target.value)} required placeholder="Ej: Lab 3" className="w-full px-4 py-2 border rounded-lg" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700">Descripción</label>
-                <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="w-full px-4 py-2 border rounded-lg" rows="2" />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700">Link Material (Opcional)</label>
-                <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} className="w-full px-4 py-2 border rounded-lg" placeholder="https://..." />
-              </div>
-
-              {/* LISTADO DE TEMAS */}
-              <div className="bg-white p-4 border rounded-lg border-gray-300">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Seleccionar Temas a Evaluar:</label>
-                {temasDisponibles.length > 0 ? (
-                  <div className="max-h-40 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {temasDisponibles.map((tema) => (
-                      <div key={tema.id} className="flex items-center space-x-2 bg-gray-50 p-2 rounded hover:bg-gray-100 transition">
-                        <input type="checkbox" id={`tema-${tema.id}`} checked={temasSeleccionados.includes(tema.id)} onChange={() => handleToggleTema(tema.id)} className="w-5 h-5 text-purple-600 rounded cursor-pointer" />
-                        <label htmlFor={`tema-${tema.id}`} className="text-sm text-gray-700 cursor-pointer w-full select-none">{tema.titulo}</label>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4 bg-yellow-50 rounded text-yellow-700 text-sm">
-                    ⚠️ No hay temas creados. <br/>
-                    <span className="font-bold">¡Usa el botón "Nuevo Tema" arriba para crear uno!</span>
-                  </div>
-                )}
-              </div>
-
-              <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg mt-4 transition">
-                💾 Guardar Evaluación
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* NAVEGACIÓN A LISTADO (En construccion) */}
+        {/* NAVEGACIÓN A LISTADO */}
         <div className="text-center mt-8 pt-6 border-t border-gray-100">
           <button onClick={() => navigate(`/asignaturas/${id}/evaluaciones`)} className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-lg">
-            Ver Listado Completo (En construcción)
+            Ver Listado Completo
           </button>
         </div>
       </div>
