@@ -57,6 +57,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/evaluaciones-orales/:id/evaluaciones-orales",
+        element: (
+          <ProtectedRoute>
+            <VerEvaluaciones />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/estudiante/mis-asignaturas",
         element: (
           <ProtectedRoute>

@@ -239,7 +239,8 @@ export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
     }
     const evaluaciones = await evaluacionRepo.find({
       where: { asignatura: { id: Number(asignaturaId) } },
-      relations: ["asignatura"],
+      relations: ["asignatura", "temas"], 
+      order: { created_at: "DESC" }
     });
     return evaluaciones;
   } catch (error) {
@@ -342,4 +343,15 @@ export const eliminarNota = async (notaId) => {
   }
 
   return await notaRepo.remove(notaExistente);
+};
+
+// Obtener todas las evaluaciones orales de una asignatura
+export const getEvaluacionesByAsignatura = async (asignaturaId) => {
+  try {
+    
+    const response = await axios.get(`/evaluaciones-orales/asignatura/${asignaturaId}`);
+    return response.data; // Retorna { status: "Success", data: [...] }
+  } catch (error) {
+    throw error;
+  }
 };
