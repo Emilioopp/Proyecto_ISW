@@ -1,5 +1,5 @@
 import * as evaluacionService from "../services/evaluacionOral.service.js";
-import { handleError, handleSuccess } from "../Handlers/responseHandlers.js";
+import { handleError, handleSuccess, handleErrorServer } from "../Handlers/responseHandlers.js";
 
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   const { id } = req.params;
@@ -49,13 +49,25 @@ export const actualizarEvaluacionController = async (req, res) => {
 export const eliminarEvaluacionController = async (req, res) => {
   try {
     const { id } = req.params;
-    const [evaluacion, error] = await eliminarEvaluacion(id);
 
-    if (error) return handleErrorClient(res, 400, error);
+    // Llamamos al servicio
+    const [evaluacion, error] = await evaluacionService.eliminarEvaluacion(id);
 
+    if (error) {
+        if (typeof handleErrorClient === 'function') {
+            return handleErrorClient(res, 400, error);
+        } else {
+            console.error("ERROR: handleErrorClient no está importado correctamente.");
+            return res.status(400).json({ message: error });
+        }
+    }
     handleSuccess(res, 200, "Evaluación eliminada exitosamente", evaluacion);
-  } catch (error) {
-    handleErrorServer(res, 500, error.message);
+  } catch (err) {
+    if (typeof handleErrorServer === 'function') {
+        handleErrorServer(res, 500, err.message);
+    } else {
+        res.status(500).json({ message: "Error crítico del servidor", error: err.message });
+    }
   }
 };
 

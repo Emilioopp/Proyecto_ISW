@@ -40,7 +40,7 @@ export const EvaluacionOralSchema = Joi.object({
     .optional()
     .messages({
       "string.base": "El material de estudio debe ser una cadena de texto (links o referencias)",
-    }),  
+    }),
 
   duracion_minutos: Joi.number()
     .integer()

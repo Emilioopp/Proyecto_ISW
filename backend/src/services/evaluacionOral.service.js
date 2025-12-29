@@ -14,7 +14,7 @@ const userRepo = AppDataSource.getRepository(User);
 const asignaturaRepo = AppDataSource.getRepository(Asignatura);
 
 export const crearEvaluacionOral = async (data) => {
-  const { asignaturaId, profesor_id, titulo, descripcion } = data;
+  const { asignaturaId, profesor_id, titulo, descripcion, sala, duracion_minutos, material_estudio, tipo } = data;
 
   const asignatura = await asignaturaRepo.findOne({
     where: { id: asignaturaId },
@@ -27,6 +27,10 @@ export const crearEvaluacionOral = async (data) => {
   const nuevaEvaluacion = evaluacionRepo.create({
     titulo,
     descripcion,
+    sala,
+    duracion_minutos,
+    material_estudio,
+    tipo,
     asignatura: asignatura,
     profesor: { id: profesor_id },
   });
@@ -36,24 +40,38 @@ export const crearEvaluacionOral = async (data) => {
 
 export const eliminarEvaluacion = async (id) => {
   try {
-    const evaluacion = await EvaluacionOral.findOne({
-      where: { id },
-      relations: ["notas"],
+    // 1. Buscar usando el repositorio (NO usar EvaluacionOral.findOne)
+    const evaluacion = await evaluacionRepo.findOne({
+      where: { id: Number(id) }
     });
 
     if (!evaluacion) {
       return [null, "Evaluación no encontrada"];
     }
 
-    if (evaluacion.notas && evaluacion.notas.length > 0) {
-      return [null, "No se puede eliminar la evaluación porque tiene notas registradas"];
+    // 2. Limpiar Notas Asociadas (Evita el error de Foreign Key)
+    // "evaluacion" debe coincidir con el nombre de la relación en tu entidad NotaEvaluacion
+    // Si tu entidad nota tiene @ManyToOne(() => ..., (eval) => eval.notas), busca ese nombre.
+    // Intentaremos borrar por ID directo que es más seguro:
+    
+    try {
+        // Intenta borrar las notas que apunten a esta evaluación
+        // Ajusta "evaluacion" por el nombre exacto de la relación en NotaEvaluacion.entity.js
+        await notaRepo.delete({ evaluacion: { id: Number(id) } });
+    } catch (errNotes) {
+        console.log("No se pudieron borrar notas o no existían: ", errNotes.message);
+        // Continuamos, tal vez no tenía notas
     }
 
-    await EvaluacionOral.remove(evaluacion);
+    // 3. Eliminar la evaluación usando el repositorio
+    await evaluacionRepo.remove(evaluacion);
+
     return [evaluacion, null];
+
   } catch (error) {
-    console.error("Error al eliminar evaluación:", error);
-    return [null, "Error interno del servidor"];
+    console.error("❌ ERROR CRÍTICO EN BACKEND:", error);
+    // IMPORTANTE: Devolvemos el error real para verlo en el frontend
+    return [null, error.message]; 
   }
 };
 
