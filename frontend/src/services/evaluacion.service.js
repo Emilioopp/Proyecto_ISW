@@ -10,7 +10,6 @@ export const getNotasDeEvaluacion = async (id) => {
   return response.data;
 };
 
-// Alias para compatibilidad con pantallas antiguashttp://localhost:3000/api/evaluaciones-orales/:id/notas
 export const getNotasByEvaluacion = async (id) => {
   const response = await axios.get(`/evaluaciones-orales/${id}/notas`);
   return response.data;
@@ -43,6 +42,8 @@ export const deleteNota = async (notaId) => {
 };
 
 export const deleteEvaluacion = async (evaluacionId) => {
-  const response = await axios.delete(`/evaluaciones-orales/${evaluacionId}`);
+  const response = await axios.delete(
+    `/evaluaciones-orales/evaluacion/${evaluacionId}`
+  );
   return response.data;
 };

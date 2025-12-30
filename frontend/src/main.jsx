@@ -133,7 +133,7 @@ const router = createBrowserRouter([
         path: "/estudiante/asignaturas/:id/orales",
         element: (
           <ProtectedRoute>
-            <Placeholder titulo="Evaluaciones Orales" icono="🗣️" />
+            <Placeholder titulo="Evaluaciones Orales" />
           </ProtectedRoute>
         ),
       },
