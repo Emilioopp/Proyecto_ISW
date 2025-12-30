@@ -1,8 +1,8 @@
 ﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../services/root.service";
-import { deleteEvaluacion } from "../services/evaluacion.service"; // Importamos el servicio
-import Swal from "sweetalert2"; // Importamos SweetAlert para confirmación
+import { deleteEvaluacion } from "../services/evaluacion.service";
+import Swal from "sweetalert2";
 
 const VerEvaluaciones = () => {
   const { id } = useParams();
@@ -25,7 +25,6 @@ const VerEvaluaciones = () => {
     }
   };
 
-  // --- FUNCIÓN PARA ELIMINAR ---
   const handleEliminar = async (evaluacionId) => {
     const result = await Swal.fire({
       title: "¿Estás seguro?",
@@ -42,7 +41,7 @@ const VerEvaluaciones = () => {
       try {
         await deleteEvaluacion(evaluacionId);
         Swal.fire("Eliminado", "La evaluación ha sido eliminada.", "success");
-        cargarEvaluaciones(); // Recargamos la lista para que desaparezca
+        cargarEvaluaciones();
       } catch (error) {
         console.error(error);
         Swal.fire("Error", "No se pudo eliminar la evaluación.", "error");
@@ -53,13 +52,12 @@ const VerEvaluaciones = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* TARJETA DE TÍTULO + VOLVER */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <h1 className="text-3xl font-bold text-gray-800">
             Evaluaciones de Asignatura
           </h1>
           <button
-            onClick={() => navigate(-1)} // Regresa a Detalle de Asignatura
+            onClick={() => navigate(-1)}
             className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md"
           >
             ← Volver

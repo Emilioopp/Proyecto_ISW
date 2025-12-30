@@ -107,7 +107,6 @@ export async function getEstudiantesByAsignaturaService(
   asignaturaId,
   rol = "Profesor"
 ) {
-  // Si es Profesor valida asignacion; Admin puede ver cualquier asignatura
   if (rol !== "Admin") {
     const asignacionProfesor = await paRepo.findOne({
       where: {

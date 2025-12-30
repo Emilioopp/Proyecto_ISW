@@ -3,7 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { getMisNotasPorAsignatura } from "../services/estudiante.service";
 
 const NotasEstudiante = () => {
-  const { id } = useParams(); // ID de la asignatura
+  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const asignaturaInfo = location.state?.asignatura;
@@ -11,7 +11,6 @@ const NotasEstudiante = () => {
   const [notas, setNotas] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Estados para el Modal de Observación
   const [modalOpen, setModalOpen] = useState(false);
   const [notaSeleccionada, setNotaSeleccionada] = useState(null);
 
@@ -32,13 +31,11 @@ const NotasEstudiante = () => {
     }
   };
 
-  // Función para abrir el modal
   const verObservacion = (nota) => {
     setNotaSeleccionada(nota);
     setModalOpen(true);
   };
 
-  // Función para cerrar el modal
   const cerrarModal = () => {
     setModalOpen(false);
     setNotaSeleccionada(null);
@@ -137,11 +134,8 @@ const NotasEstudiante = () => {
           )}
         </div>
       </div>
-
-      {/* --- VENTANA MODAL (Overlay) --- */}
       {modalOpen && notaSeleccionada && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 animate-fade-in">
-          {/* CAMBIO AQUÍ: Cambié max-w-lg a max-w-3xl para hacerlo más ancho */}
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden transform transition-all scale-100">
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center">
@@ -174,14 +168,12 @@ const NotasEstudiante = () => {
                     {notaSeleccionada.nota}
                   </div>
                 </div>
-                {/* Puedes agregar más info aquí si quieres, como la fecha */}
               </div>
 
               <div>
                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
                   Observación del Docente
                 </span>
-                {/* Aumenté la altura máxima del scroll y mejoré el espaciado */}
                 <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 text-gray-800 text-base leading-relaxed max-h-[400px] overflow-y-auto whitespace-pre-wrap shadow-inner">
                   {notaSeleccionada.observacion}
                 </div>

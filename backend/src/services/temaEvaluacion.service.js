@@ -13,7 +13,6 @@ function createError(message, status = 400) {
 }
 
 export async function crearTema(data, profesor) {
-  // Verificar existencia por título y profesor
   const existe = await temaRepo().findOne({
     where: { titulo: data.titulo, profesor: { id: profesor.id } },
     relations: ["profesor"],
@@ -48,14 +47,13 @@ export async function obtenerTemas() {
 }
 
 export async function obtenerTemasPorAsignatura(asignaturaId) {
-  // Buscamos temas donde la asignatura coincida con el ID
   const temas = await temaRepo().find({
     where: {
       asignatura: {
         id: parseInt(asignaturaId),
       },
     },
-    relations: ["profesor"], // Opcional: si quieres saber qué profe creó el tema
+    relations: ["profesor"],
   });
   return temas;
 }
