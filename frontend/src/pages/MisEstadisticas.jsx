@@ -35,7 +35,11 @@ const MisEstadisticas = () => {
     } catch (error) {
       console.error(error);
       setLoadError(true);
-      await Swal.fire("Error", "No se pudieron cargar las estadísticas", "error");
+      await Swal.fire(
+        "Error",
+        "No se pudieron cargar las estadísticas",
+        "error"
+      );
       navigate("/home");
     } finally {
       setLoading(false);
@@ -47,6 +51,19 @@ const MisEstadisticas = () => {
     if (nota >= 4.0) return "#3498db";
     return "#e74c3c";
   };
+
+  // --- LÓGICA DE ESTADO ACTUAL MODIFICADA ---
+  const getEstadoActual = (promedios) => {
+    if (!promedios || promedios.length === 0) return "Sin datos";
+
+    const todosAprobados = promedios.every((p) => p.promedio >= 4.0);
+    const todosReprobados = promedios.every((p) => p.promedio < 4.0);
+
+    if (todosAprobados) return "Aprobando";
+    if (todosReprobados) return "Desaprobando";
+    return "En Riesgo"; // Caso intermedio: algunos aprobados, algunos reprobados
+  };
+  // ------------------------------------------
 
   if (loading) {
     return (
@@ -61,7 +78,9 @@ const MisEstadisticas = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
         <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl p-6">
           <div className="flex justify-between items-center mb-4 border-b pb-3 border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-800">📊 Mi Rendimiento</h1>
+            <h1 className="text-2xl font-bold text-gray-800">
+              📊 Mi Rendimiento
+            </h1>
             <button
               onClick={() => navigate("/home")}
               className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md"
@@ -82,7 +101,9 @@ const MisEstadisticas = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
         <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl p-6">
           <div className="flex justify-between items-center mb-4 border-b pb-3 border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-800">📊 Mi Rendimiento</h1>
+            <h1 className="text-2xl font-bold text-gray-800">
+              📊 Mi Rendimiento
+            </h1>
             <button
               onClick={() => navigate("/home")}
               className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md"
@@ -138,7 +159,8 @@ const MisEstadisticas = () => {
               className="stat-value"
               style={{ fontSize: "1.5rem", marginTop: "20px" }}
             >
-              {stats.promedioGeneral >= 4.0 ? "Aprobando" : "En Riesgo"}
+              {/* Llamada a la nueva función lógica */}
+              {getEstadoActual(stats.promedioPorAsignatura)}
             </span>
           </div>
         </div>

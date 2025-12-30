@@ -121,7 +121,7 @@ const NotasEstudiante = () => {
                             onClick={() => verObservacion(nota)}
                             className="bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-1 px-4 rounded-full text-sm transition-colors flex items-center justify-center mx-auto gap-1"
                           >
-                            <span>👁️</span> Ver Detalle
+                            <span></span>Ver Detalle
                           </button>
                         ) : (
                           <span className="text-gray-400 text-sm italic">
