@@ -1,53 +1,25 @@
 import * as evaluacionService from "../services/evaluacionOral.service.js";
-import { handleError, handleSuccess, handleErrorServer, handleErrorClient } from "../Handlers/responseHandlers.js";
-import * as inscripcionService from "../services/inscripcionEvaluacion.service.js";
+import {
+  handleError,
+  handleSuccess,
+  handleErrorClient,
+} from "../Handlers/responseHandlers.js";
 
-export const obtenerHorariosDisponibles = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const horarios = await evaluacionService.obtenerHorariosDisponibles(
-      parseInt(id)
-    );
-
-    handleSuccess(res, 200, horarios);
-  } catch (error) {
-    handleError(res, error);
-  }
-};
-
-
-
-export const inscribirseAEvaluacion = async (req, res) => {
-  try {
-    const evaluacionId = parseInt(req.params.id);
-    const horarioId = parseInt(req.params.horarioId);
-    const estudianteId = req.user.sub;
-
-    const resultado = await evaluacionService.inscribirseAEvaluacion(
-      evaluacionId,
-      horarioId,
-      estudianteId
-    );
-
-    handleSuccess(
-      res,
-      201,
-      "Horario reservado correctamente",
-      resultado
-    );
-  } catch (error) {
-    handleError(res, error);
-  }
-};
-
-
+// --- OBTENER EVALUACIONES POR ASIGNATURA ---
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   const { id } = req.params;
 
   try {
+    const idAsignatura = parseInt(id);
+    if (isNaN(idAsignatura)) {
+      return res.status(400).json({
+        status: "Error",
+        message: "El ID de la asignatura debe ser numérico.",
+      });
+    }
+
     const evaluaciones =
-      await evaluacionService.obtenerEvaluacionesPorAsignatura(id);
+      await evaluacionService.obtenerEvaluacionesPorAsignatura(idAsignatura);
 
     res.json({
       status: "Success",
@@ -62,13 +34,24 @@ export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   }
 };
 
+// --- CREAR EVALUACIÓN ORAL (Actualizado con nuevos campos) ---
 export const crearEvaluacionOral = async (req, res) => {
   try {
     const profesor_id = req.user.sub;
     const { asignaturaId } = req.params;
 
-    const { temas, horarios } = req.body;
+    // Extraer nuevos campos y validar 'temas'
+    const {
+      titulo,
+      descripcion,
+      sala,
+      duracion_minutos,
+      material_estudio,
+      fecha_hora, // Asegúrate de que el frontend envíe esto como 'fecha_hora'
+      temas,
+    } = req.body;
 
+    // Validación de temas (Opcional, pero recomendada si es obligatorio)
     if (!temas || !Array.isArray(temas) || temas.length === 0) {
       return handleErrorClient(
         res,
@@ -77,21 +60,23 @@ export const crearEvaluacionOral = async (req, res) => {
       );
     }
 
-    if (!horarios || !Array.isArray(horarios) || horarios.length === 0) {
-      return handleErrorClient(
-        res,
-        400,
-        "Se requiere al menos un horario disponible"
-      );
-    }
-
     const data = {
-      ...req.body,
+      asignaturaId: parseInt(asignaturaId),
       profesor_id,
-      asignaturaId,
+      titulo,
+      descripcion,
+      sala,
+      duracion_minutos: parseInt(duracion_minutos),
+      material_estudio,
+      fecha_hora,
+      temas,
     };
 
     const evaluacion = await evaluacionService.crearEvaluacionOral(data);
+
+    if (!evaluacion) {
+      return handleErrorClient(res, 400, "No se pudo crear la evaluación.");
+    }
 
     handleSuccess(res, 201, "Evaluación oral creada exitosamente", evaluacion);
   } catch (error) {
@@ -99,70 +84,48 @@ export const crearEvaluacionOral = async (req, res) => {
   }
 };
 
-
-export const actualizarEvaluacionController = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [evaluacion, error] = await actualizarEvaluacion(id, req.body);
-
-    if (error) return handleErrorClient(res, 404, error);
-
-    handleSuccess(res, 200, "Evaluación actualizada exitosamente", evaluacion);
-  } catch (error) {
-    handleErrorServer(res, 500, error.message);
-  }
-};
-
-export const eliminarEvaluacionController = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Llamamos al servicio
-    const [evaluacion, error] = await evaluacionService.eliminarEvaluacion(id);
-
-    if (error) {
-        if (typeof handleErrorClient === 'function') {
-            return handleErrorClient(res, 400, error);
-        } else {
-            console.error("ERROR: handleErrorClient no está importado correctamente.");
-            return res.status(400).json({ message: error });
-        }
-    }
-    handleSuccess(res, 200, "Evaluación eliminada exitosamente", evaluacion);
-  } catch (err) {
-    if (typeof handleErrorServer === 'function') {
-        handleErrorServer(res, 500, err.message);
-    } else {
-        res.status(500).json({ message: "Error crítico del servidor", error: err.message });
-    }
-  }
-};
-
+// --- REGISTRAR NOTA ---
 export const registrarNota = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
     const { estudiante_id, nota, observacion } = req.body;
+
+    if (isNaN(evaluacion_oral_id)) {
+      return res
+        .status(400)
+        .json({ status: "Error", message: "ID de evaluación inválido" });
+    }
+
     if (!estudiante_id || nota === undefined) {
       return res.status(400).json({
         status: "Error",
         message: "Faltan datos obligatorios: estudiante_id y nota",
       });
     }
+
     const registro = await evaluacionService.registrarNota({
       evaluacion_oral_id,
       estudiante_id,
       nota,
       observacion,
     });
-    handleSuccess(res, 201, registro);
+    handleSuccess(res, 201, "Nota registrada exitosamente", registro);
   } catch (error) {
     handleError(res, error);
   }
 };
 
+// --- OBTENER NOTAS POR EVALUACIÓN ---
 export const obtenerNotasPorEvaluacion = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
+
+    if (isNaN(evaluacion_oral_id)) {
+      return res
+        .status(400)
+        .json({ status: "Error", message: "ID de evaluación inválido" });
+    }
+
     const notas = await evaluacionService.obtenerNotasPorEvaluacion(
       evaluacion_oral_id
     );
@@ -172,6 +135,7 @@ export const obtenerNotasPorEvaluacion = async (req, res) => {
   }
 };
 
+// --- ACTUALIZAR NOTA ---
 export const actualizarNota = async (req, res) => {
   try {
     const { id } = req.params;
@@ -195,6 +159,7 @@ export const actualizarNota = async (req, res) => {
   }
 };
 
+// --- ELIMINAR NOTA ---
 export const eliminarNota = async (req, res) => {
   try {
     const { id } = req.params;
@@ -209,6 +174,78 @@ export const eliminarNota = async (req, res) => {
     await evaluacionService.eliminarNota(idNota);
 
     handleSuccess(res, 200, "Nota eliminada correctamente");
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const actualizarEvaluacion = async (req, res) => {
+  try {
+    const { id } = req.params; // ID de la evaluación
+    const evaluacionId = parseInt(id);
+
+    if (isNaN(evaluacionId)) {
+      return handleErrorClient(res, 400, "ID de evaluación inválido");
+    }
+
+    // Extraemos datos del body
+    const {
+      titulo,
+      descripcion,
+      sala,
+      duracion_minutos,
+      material_estudio,
+      fecha_hora,
+      temas,
+    } = req.body;
+
+    if (temas && (!Array.isArray(temas) || temas.length === 0)) {
+      return handleErrorClient(
+        res,
+        400,
+        "La lista de temas no puede estar vacía si se envía"
+      );
+    }
+
+    const data = {
+      titulo,
+      descripcion,
+      sala,
+      duracion_minutos: duracion_minutos
+        ? parseInt(duracion_minutos)
+        : undefined,
+      material_estudio,
+      fecha_hora,
+      temas,
+    };
+
+    const evaluacionActualizada =
+      await evaluacionService.actualizarEvaluacionOral(evaluacionId, data);
+
+    handleSuccess(
+      res,
+      200,
+      "Evaluación actualizada correctamente",
+      evaluacionActualizada
+    );
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+// --- ELIMINAR EVALUACIÓN (NUEVO) ---
+export const eliminarEvaluacion = async (req, res) => {
+  try {
+    const { id } = req.params; // ID de la evaluación
+    const evaluacionId = parseInt(id);
+
+    if (isNaN(evaluacionId)) {
+      return handleErrorClient(res, 400, "ID de evaluación inválido");
+    }
+
+    await evaluacionService.eliminarEvaluacionOral(evaluacionId);
+
+    handleSuccess(res, 200, "Evaluación eliminada correctamente");
   } catch (error) {
     handleError(res, error);
   }

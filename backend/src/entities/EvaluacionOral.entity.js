@@ -34,11 +34,15 @@ export const EvaluacionOral = new EntitySchema({
     material_estudio: {
       type: "text",
       nullable: true,
-      comment: "Enlaces o referencias bibliograficas"
+      comment: "Enlaces o referencias bibliograficas",
     },
     duracion_minutos: {
       type: "int",
       nullable: true,
+    },
+    fecha: {
+      type: "timestamp",
+      nullable: false,
     },
     created_at: {
       type: "timestamp",
@@ -73,16 +77,10 @@ export const EvaluacionOral = new EntitySchema({
       type: "many-to-many",
       target: "TemaEvaluacion",
       joinTable: {
-        name: "evaluacion_temas", // Tabla intermedia
+        name: "evaluacion_temas",
         joinColumn: { name: "evaluacion_id", referencedColumnName: "id" },
         inverseJoinColumn: { name: "tema_id", referencedColumnName: "id" },
       },
-      cascade: true,
-    },
-    horarios_disponibles: {
-      type: "one-to-many",
-      target: "HorarioDisponible",
-      inverseSide: "evaluacion_oral",
       cascade: true,
     },
   },

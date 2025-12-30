@@ -1,8 +1,8 @@
 import { EntitySchema } from "typeorm";
 
 export const TemaEvaluacion = new EntitySchema({
-  name: "TemaEvaluacion", // Nombre usado en relaciones
-  tableName: "temas_evaluacion", // Nombre en la base de datos
+  name: "TemaEvaluacion",
+  tableName: "temas_evaluacion",
   columns: {
     id: {
       primary: true,
@@ -24,6 +24,10 @@ export const TemaEvaluacion = new EntitySchema({
       length: 512,
       nullable: true,
     },
+    asignatura_id: {
+      type: "int",
+      nullable: true,
+    },
   },
   relations: {
     profesor: {
@@ -33,15 +37,11 @@ export const TemaEvaluacion = new EntitySchema({
       nullable: false,
       onDelete: "CASCADE",
     },
-    asignaturas: {
-      type: "many-to-many",
+    asignatura: {
+      type: "many-to-one",
       target: "Asignatura",
-      joinTable: {
-        name: "tema_asignaturas", // Tabla intermedia
-        joinColumn: { name: "tema_id", referencedColumnName: "id" },
-        inverseJoinColumn: { name: "asignatura_id", referencedColumnName: "id" },
-      },
-      cascade: true,
+      joinColumn: { name: "asignatura_id" },
+      onDelete: "CASCADE",
     },
     evaluacionesOrales: {
       type: "many-to-many",

@@ -1,15 +1,15 @@
-﻿import { EntitySchema } from "typeorm";
+import { EntitySchema } from "typeorm";
 
-export const NotaEvaluacion = new EntitySchema({
-  name: "NotaEvaluacion",
-  tableName: "notas_evaluaciones",
+export const NotaEvaluacionOral = new EntitySchema({
+  name: "NotaEvaluacionOral",
+  tableName: "Notas_evaluaciones_orales",
   columns: {
     id: {
       primary: true,
       type: "int",
       generated: "increment",
     },
-    evaluacion_id: {
+    evaluacion_oral_id: {
       type: "int",
       nullable: false,
     },
@@ -34,12 +34,13 @@ export const NotaEvaluacion = new EntitySchema({
     },
   },
   relations: {
-    evaluacion: {
+    evaluacion_oral: {
       type: "many-to-one",
-      target: "EvaluacionPractica",
-      joinColumn: { name: "evaluacion_id" },
+      target: "EvaluacionOral",
+      joinColumn: { name: "evaluacion_oral_id" },
       onDelete: "CASCADE",
     },
+
     estudiante: {
       type: "many-to-one",
       target: "User",
@@ -49,7 +50,7 @@ export const NotaEvaluacion = new EntitySchema({
   },
   uniques: [
     {
-      columns: ["evaluacion_id", "estudiante_id"],
+      columns: ["evaluacion_oral_id", "estudiante_id"],
     },
   ],
 });
