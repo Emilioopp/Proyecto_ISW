@@ -1,18 +1,18 @@
 ﻿import axios from "./root.service";
 
 export const getEvaluacionDetalle = async (id) => {
-  const response = await axios.get(`/evaluaciones-orales/${id}/registros`);
+  const response = await axios.get(`/evaluaciones-orales/evaluacion/${id}`);
   return response.data;
 };
 
 export const getNotasDeEvaluacion = async (id) => {
-  const response = await axios.get(`/evaluaciones-orales/${id}/registros`);
+  const response = await axios.get(`/evaluaciones-orales/${id}/notas`);
   return response.data;
 };
 
-// Alias para compatibilidad con pantallas antiguas
+// Alias para compatibilidad con pantallas antiguashttp://localhost:3000/api/evaluaciones-orales/:id/notas
 export const getNotasByEvaluacion = async (id) => {
-  const response = await axios.get(`/evaluaciones-orales/${id}/registros`);
+  const response = await axios.get(`/evaluaciones-orales/${id}/notas`);
   return response.data;
 };
 
@@ -23,7 +23,7 @@ export const getEstudiantesAsignatura = async (asignaturaId) => {
 
 export const registrarNota = async (evaluacionId, data) => {
   const response = await axios.post(
-    `/evaluaciones-orales/${evaluacionId}/registro`,
+    `/evaluaciones-orales/${evaluacionId}/notas`,
     data
   );
   return response.data;
@@ -43,8 +43,6 @@ export const deleteNota = async (notaId) => {
 };
 
 export const deleteEvaluacion = async (evaluacionId) => {
-  const response = await axios.delete(
-    `/evaluaciones-orales/${evaluacionId}`
-  );
+  const response = await axios.delete(`/evaluaciones-orales/${evaluacionId}`);
   return response.data;
 };
