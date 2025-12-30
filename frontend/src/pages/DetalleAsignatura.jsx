@@ -170,7 +170,6 @@ const DetalleAsignatura = () => {
     }
   };
 
-  // --- CREAR EVALUACIÓN ORAL (CORREGIDO) ---
   const handleCrearEvaluacion = async (e) => {
     e.preventDefault();
 
@@ -185,7 +184,6 @@ const DetalleAsignatura = () => {
       return showErrorAlert("Error", "La duración debe ser mayor a 0.");
 
     try {
-      // Preparamos el payload plano que espera el nuevo backend
       const payload = {
         titulo,
         descripcion,
@@ -193,18 +191,14 @@ const DetalleAsignatura = () => {
         duracion_minutos: parseInt(duracion),
         material_estudio: material,
         fecha_hora: fechaHora,
-        temas: temasSeleccionados, // Array de IDs
+        temas: temasSeleccionados,
       };
 
-      const response = await axios.post(
-        `/evaluaciones-orales/${id}`, // URL corregida
-        payload
-      );
+      const response = await axios.post(`/evaluaciones-orales/${id}`, payload);
 
       if (response.data.status === "Success") {
         showSuccessAlert("Éxito", "Evaluación creada correctamente");
 
-        // Limpiar formulario
         setTitulo("");
         setDescripcion("");
         setSala("");
@@ -222,7 +216,6 @@ const DetalleAsignatura = () => {
     }
   };
 
-  // CREAR EVALUACIÓN PRÁCTICA (NO TOCAR)
   const handleCrearEvaluacionPractica = async (e) => {
     e.preventDefault();
     try {
@@ -349,9 +342,6 @@ const DetalleAsignatura = () => {
           </div>
         )}
 
-        {/* ======================================================= */}
-        {/* EVALUACIONES ORALES (FORMULARIO ARREGLADO) */}
-        {/* ======================================================= */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <h2 className="text-xl font-bold">Evaluaciones Orales</h2>
@@ -434,7 +424,6 @@ const DetalleAsignatura = () => {
                   </div>
                 </div>
 
-                {/* Fila 3: Descripción */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700">
                     Descripción
@@ -448,7 +437,6 @@ const DetalleAsignatura = () => {
                   />
                 </div>
 
-                {/* Fila 4: Material */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700">
                     Link Material (Opcional)
@@ -462,7 +450,6 @@ const DetalleAsignatura = () => {
                   />
                 </div>
 
-                {/* Fila 5: Selección de Temas */}
                 <div className="bg-white p-4 border rounded-lg border-gray-300">
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     Seleccionar Temas a Evaluar:
@@ -519,7 +506,6 @@ const DetalleAsignatura = () => {
           </div>
         </div>
 
-        {/* FORMULARIO DE NUEVO TEMA (MANTENIDO IGUAL) */}
         {mostrarFormTema && (
           <div className="mb-8 bg-indigo-50 p-6 rounded-xl border border-indigo-200 shadow-inner animate-fade-in-down">
             <h3 className="text-lg font-bold text-indigo-800 mb-3">
@@ -546,7 +532,6 @@ const DetalleAsignatura = () => {
           </div>
         )}
 
-        {/* Evaluaciones Practicas (MANTENIDO IGUAL) */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 className="text-xl font-bold">Evaluaciones Prácticas</h2>

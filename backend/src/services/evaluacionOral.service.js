@@ -19,15 +19,13 @@ export const crearEvaluacionOral = async (data) => {
     profesor_id,
     titulo,
     descripcion,
-    // Nuevos campos recibidos del controlador
     sala,
     duracion_minutos,
     material_estudio,
-    fecha_hora, // Fecha y hora integradas
-    temas, // Array de IDs de temas [1, 2, 5]
+    fecha_hora,
+    temas,
   } = data;
 
-  // 1. Validar que la asignatura exista
   const asignatura = await asignaturaRepo.findOne({
     where: { id: asignaturaId },
   });
@@ -36,25 +34,21 @@ export const crearEvaluacionOral = async (data) => {
     throw new Error(`No se encontró una asignatura con id ${asignaturaId}`);
   }
 
-  // 2. Preparar la relación de Temas (Many-to-Many)
-  // TypeORM espera un array de objetos con la propiedad ID: [{ id: 1 }, { id: 2 }]
-  // Si 'temas' es undefined o vacío, pasamos un array vacío.
   const listaTemas =
     temas && Array.isArray(temas)
       ? temas.map((idTema) => ({ id: idTema }))
       : [];
 
-  // 3. Crear la instancia con todos los datos
   const nuevaEvaluacion = evaluacionRepo.create({
     titulo,
     descripcion,
-    sala, // Nuevo
-    duracion_minutos, // Nuevo
-    material_estudio, // Nuevo
-    fecha: fecha_hora, // Nuevo (reemplaza a Horario externo)
+    sala,
+    duracion_minutos,
+    material_estudio,
+    fecha: fecha_hora,
     asignatura: asignatura,
     profesor: { id: profesor_id },
-    temas: listaTemas, // Relación Many-to-Many
+    temas: listaTemas,
   });
 
   return await evaluacionRepo.save(nuevaEvaluacion);
@@ -68,34 +62,29 @@ export const actualizarEvaluacionOral = async (evaluacionId, data) => {
     duracion_minutos,
     material_estudio,
     fecha_hora,
-    temas, // Array de IDs [1, 3]
+    temas,
   } = data;
 
-  // 1. Buscar la evaluación existente
   const evaluacion = await evaluacionRepo.findOne({
     where: { id: evaluacionId },
-    relations: ["temas"], // Traemos los temas actuales
+    relations: ["temas"],
   });
 
   if (!evaluacion) {
     throw new Error("La evaluación no existe");
   }
 
-  // 2. Actualizar campos simples
   if (titulo) evaluacion.titulo = titulo;
   if (descripcion) evaluacion.descripcion = descripcion;
   if (sala) evaluacion.sala = sala;
   if (duracion_minutos) evaluacion.duracion_minutos = duracion_minutos;
   if (material_estudio) evaluacion.material_estudio = material_estudio;
-  if (fecha_hora) evaluacion.fecha = fecha_hora; // Ojo con el nombre de columna en tu entidad ('fecha' vs 'fecha_hora')
+  if (fecha_hora) evaluacion.fecha = fecha_hora;
 
-  // 3. Actualizar relación Temas
   if (temas && Array.isArray(temas)) {
-    // Convertimos array de IDs a array de objetos [{ id: 1 }, { id: 3 }]
     evaluacion.temas = temas.map((id) => ({ id }));
   }
 
-  // 4. Guardar cambios
   return await evaluacionRepo.save(evaluacion);
 };
 
@@ -108,11 +97,9 @@ export const eliminarEvaluacionOral = async (evaluacionId) => {
     throw new Error("La evaluación no existe");
   }
 
-  // Al eliminar, el 'CASCADE' en la BD debería borrar las notas y relaciones de temas
   return await evaluacionRepo.remove(evaluacion);
 };
 
-// --- OBTENER EVALUACIONES POR ASIGNATURA ---
 export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
   try {
     if (!asignaturaId || isNaN(Number(asignaturaId))) {
@@ -120,9 +107,8 @@ export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
     }
     const evaluaciones = await evaluacionRepo.find({
       where: { asignatura: { id: Number(asignaturaId) } },
-      // Agregamos 'temas' a las relaciones para que el frontend pueda mostrarlos
       relations: ["asignatura", "temas"],
-      order: { fecha: "ASC" }, // Ordenar por fecha de la evaluación tiene sentido
+      order: { fecha: "ASC" },
     });
     return evaluaciones;
   } catch (error) {
@@ -130,7 +116,6 @@ export const obtenerEvaluacionesPorAsignatura = async (asignaturaId) => {
   }
 };
 
-// --- REGISTRAR NOTA (Sin cambios mayores, solo validaciones) ---
 export const registrarNota = async ({
   evaluacion_oral_id,
   estudiante_id,
@@ -181,7 +166,6 @@ export const registrarNota = async ({
   return guardada;
 };
 
-// --- OBTENER NOTAS POR EVALUACIÓN ---
 export const obtenerNotasPorEvaluacion = async (evaluacion_oral_id) => {
   return await notaRepo.find({
     where: { evaluacion_oral: { id: evaluacion_oral_id } },
@@ -189,7 +173,6 @@ export const obtenerNotasPorEvaluacion = async (evaluacion_oral_id) => {
   });
 };
 
-// --- ACTUALIZAR NOTA ---
 export const actualizarNota = async (notaId, { nota, observacion }) => {
   const notaExistente = await notaRepo.findOne({
     where: { id: notaId },
@@ -213,7 +196,6 @@ export const actualizarNota = async (notaId, { nota, observacion }) => {
   return await notaRepo.save(notaExistente);
 };
 
-// --- ELIMINAR NOTA ---
 export const eliminarNota = async (notaId) => {
   const notaExistente = await notaRepo.findOne({
     where: { id: notaId },

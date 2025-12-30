@@ -251,7 +251,7 @@ export const verHistorial = async (req, res) => {
 
 export const verEstadisticas = async (req, res) => {
   try {
-    const estudianteId = req.user.sub; // ID del token
+    const estudianteId = req.user.sub;
 
     const estadisticas = await obtenerEstadisticasEstudiante(estudianteId);
 

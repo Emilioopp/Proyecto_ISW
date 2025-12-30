@@ -52,7 +52,6 @@ const MisEstadisticas = () => {
     return "#e74c3c";
   };
 
-  // --- LÓGICA DE ESTADO ACTUAL MODIFICADA ---
   const getEstadoActual = (promedios) => {
     if (!promedios || promedios.length === 0) return "Sin datos";
 
@@ -61,9 +60,8 @@ const MisEstadisticas = () => {
 
     if (todosAprobados) return "Aprobando";
     if (todosReprobados) return "Desaprobando";
-    return "En Riesgo"; // Caso intermedio: algunos aprobados, algunos reprobados
+    return "En Riesgo";
   };
-  // ------------------------------------------
 
   if (loading) {
     return (
@@ -159,7 +157,6 @@ const MisEstadisticas = () => {
               className="stat-value"
               style={{ fontSize: "1.5rem", marginTop: "20px" }}
             >
-              {/* Llamada a la nueva función lógica */}
               {getEstadoActual(stats.promedioPorAsignatura)}
             </span>
           </div>

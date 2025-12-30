@@ -5,7 +5,6 @@ import {
   handleErrorClient,
 } from "../Handlers/responseHandlers.js";
 
-// --- OBTENER EVALUACIONES POR ASIGNATURA ---
 export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   const { id } = req.params;
 
@@ -34,24 +33,21 @@ export const obtenerEvaluacionesPorAsignatura = async (req, res) => {
   }
 };
 
-// --- CREAR EVALUACIÓN ORAL (Actualizado con nuevos campos) ---
 export const crearEvaluacionOral = async (req, res) => {
   try {
     const profesor_id = req.user.sub;
     const { asignaturaId } = req.params;
 
-    // Extraer nuevos campos y validar 'temas'
     const {
       titulo,
       descripcion,
       sala,
       duracion_minutos,
       material_estudio,
-      fecha_hora, // Asegúrate de que el frontend envíe esto como 'fecha_hora'
+      fecha_hora,
       temas,
     } = req.body;
 
-    // Validación de temas (Opcional, pero recomendada si es obligatorio)
     if (!temas || !Array.isArray(temas) || temas.length === 0) {
       return handleErrorClient(
         res,
@@ -84,7 +80,6 @@ export const crearEvaluacionOral = async (req, res) => {
   }
 };
 
-// --- REGISTRAR NOTA ---
 export const registrarNota = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
@@ -115,7 +110,6 @@ export const registrarNota = async (req, res) => {
   }
 };
 
-// --- OBTENER NOTAS POR EVALUACIÓN ---
 export const obtenerNotasPorEvaluacion = async (req, res) => {
   try {
     const evaluacion_oral_id = parseInt(req.params.id);
@@ -135,7 +129,6 @@ export const obtenerNotasPorEvaluacion = async (req, res) => {
   }
 };
 
-// --- ACTUALIZAR NOTA ---
 export const actualizarNota = async (req, res) => {
   try {
     const { id } = req.params;
@@ -159,7 +152,6 @@ export const actualizarNota = async (req, res) => {
   }
 };
 
-// --- ELIMINAR NOTA ---
 export const eliminarNota = async (req, res) => {
   try {
     const { id } = req.params;
@@ -181,14 +173,13 @@ export const eliminarNota = async (req, res) => {
 
 export const actualizarEvaluacion = async (req, res) => {
   try {
-    const { id } = req.params; // ID de la evaluación
+    const { id } = req.params;
     const evaluacionId = parseInt(id);
 
     if (isNaN(evaluacionId)) {
       return handleErrorClient(res, 400, "ID de evaluación inválido");
     }
 
-    // Extraemos datos del body
     const {
       titulo,
       descripcion,
@@ -233,10 +224,9 @@ export const actualizarEvaluacion = async (req, res) => {
   }
 };
 
-// --- ELIMINAR EVALUACIÓN (NUEVO) ---
 export const eliminarEvaluacion = async (req, res) => {
   try {
-    const { id } = req.params; // ID de la evaluación
+    const { id } = req.params;
     const evaluacionId = parseInt(id);
 
     if (isNaN(evaluacionId)) {

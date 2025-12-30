@@ -9,9 +9,6 @@ import {
 } from "../services/evaluacion.service";
 import Swal from "sweetalert2";
 
-// Ya no importamos CSS externo, usamos Tailwind para consistencia
-// import "../styles/detalleEvaluacion.css";
-
 const DetalleEvaluacion = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -22,7 +19,6 @@ const DetalleEvaluacion = () => {
   const [estudiantes, setEstudiantes] = useState([]);
   const [notasExistentes, setNotasExistentes] = useState([]);
 
-  // Estados Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [currentStudent, setCurrentStudent] = useState(null);
   const [currentNoteId, setCurrentNoteId] = useState(null);
@@ -160,7 +156,6 @@ const DetalleEvaluacion = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* HEADER: Estilo Unificado con VerEvaluaciones */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">
@@ -178,7 +173,6 @@ const DetalleEvaluacion = () => {
           </button>
         </div>
 
-        {/* TABLA: Estilo Unificado */}
         <div className="bg-white rounded-2xl shadow-2xl p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
             Listado de Estudiantes
@@ -224,7 +218,6 @@ const DetalleEvaluacion = () => {
                       </td>
                       <td className="px-4 py-3 text-gray-600">{est.rut}</td>
 
-                      {/* Nota */}
                       <td className="px-4 py-3 text-center">
                         {notaRegistrada ? (
                           <span
@@ -241,7 +234,6 @@ const DetalleEvaluacion = () => {
                         )}
                       </td>
 
-                      {/* Observación */}
                       <td
                         className="px-4 py-3 text-gray-600 italic max-w-xs truncate"
                         title={notaRegistrada?.observacion}
@@ -294,7 +286,6 @@ const DetalleEvaluacion = () => {
         </div>
       </div>
 
-      {/* --- VENTANA MODAL --- */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 animate-fade-in backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden transform transition-all scale-100 border border-gray-100">
